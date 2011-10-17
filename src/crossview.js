@@ -456,11 +456,12 @@
 		while (instance && !instance[command])
 			instance = getAncestorViewModel(instance);
 		
-		if (instance)
+		if (instance) {
 			instance[command](this);
+			return false;
+		}
 		else
 			console.error("Command not found: " + command + ".");
-
 	}
 
 	$(autoRegister);
@@ -487,7 +488,7 @@
             return methods.init.apply( this, arguments );
 	    } else {
             $.error('Method ' +  method + ' does not exist on jQuery.crossview');
-        }    	  
+        }
 	};
 	
 })(jQuery);
