@@ -321,7 +321,7 @@
 				}
 				
 				// Use a View-Model, if available.
-				if (viewModel && !el.attr(view.attributes.withoutViewModel) == "true") {
+				if (viewModel && el.attr(view.attributes.withoutViewModel) != "true") {
 					console.log("Rendering " + el + " using " + template + ".");
 					viewModel.setData(data);
 					doRendering(el, viewModel);
