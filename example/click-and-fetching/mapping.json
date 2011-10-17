@@ -1,0 +1,10 @@
+{
+	"viewModel" : {
+		"testeVM" : "cliqueModelView.js"
+	},
+	
+	"view" : {
+		"testeView" : "cliqueView.html",
+		"reuniaoPlenarioView" : "reuniaoPlenarioView.html"
+	}
+}
