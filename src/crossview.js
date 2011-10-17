@@ -79,7 +79,10 @@
 			resources : {},
 			attributes : {
 				binding : "data-view",
-				lastRendering : "data-view-rendered"
+				lastRendering : "data-view-rendered",
+				withoutViewModel : "data-view-without-viewmodel",
+				jsonPath : "data-json-path",
+				jsonUrl : "data-json-url"
 			}
 	};
 	
@@ -112,6 +115,10 @@
 			instance = $.extend(null, {
 				updateView : function() {
 					el.find("[" + view.attributes.binding + "]").each(renderView);
+				},
+				
+				setData : function(data) {
+					this.data = data;
 				}
 			}, instance);
 			
@@ -258,11 +265,16 @@
 				if (view.resources[template]) {
 					console.log("Loading template " + template + " from " + view.resources[template] + ".");
 					view.templates[template] = view.resources[template];
-					$.get(view.resources[template]).success(function(data) {
+					$.ajax({
+						url : view.resources[template],
+						dataType : "text"
+					}).success(function(data) {
 						console.log("Template " + template + " loaded from " + view.resources[template] + ".");
 						$("<script id='mvvm-template-" + template + "' type='text/x-jquery-tmpl'>" + data + "</script>").template(template);
 						view.templates[template].loading = false;
 						renderViewsFromTemplate(template);
+					}).error(function(x, e) {
+						console.error("Error loading template \"" + template + "\" from " + view.resources[template] + ": " + e + ".");
 					});
 				}
 			} else if (!view.templates[template])
@@ -282,10 +294,47 @@
      */
 	function renderView() {
 		var template = $(this).attr(view.attributes.binding);
+		var jsonUrl = $(this).attr(view.attributes.jsonUrl);
+		var viewModel = getViewModel($(this));
 		
-		console.log("Rendering " + this + " using " + template);
-		$(this).attr(view.attributes.lastRendering, new Date());
-		$(this).html($.render(template, getViewModel($(this))));
+		function doRendering(el, data) {
+			var content = $.render(template, data);
+			el.html(content);			
+			el.attr(view.attributes.lastRendering, new Date());
+		}
+		
+		// Check if the view needs to fetch a JSON data.
+		if (jsonUrl) {
+			var el = $(this);
+			
+			console.log("Fetching JSON data from " + jsonUrl + ".");
+			
+			$.getJSON(jsonUrl).success(function(data) {
+				var path = el.attr(view.attributes.jsonPath);
+				
+				// Traverse JSON data path...
+				if (path) {
+					path = path.split(".");
+					
+					for (var i = 0; i < path.length; i++)
+						data = data[path[i]];
+				}
+				
+				// Use a View-Model, if available.
+				if (viewModel && !el.attr(view.attributes.withoutViewModel) == "true") {
+					console.log("Rendering " + el + " using " + template + ".");
+					viewModel.setData(data);
+					doRendering(el, viewModel);
+				} else {
+					console.log("Rendering " + el + " using " + template + " without a View-Model");
+					doRendering(el, data);
+				}
+			});
+		} else {
+			// Do basic rendering.
+			console.log("Rendering " + this + " using " + template);
+			doRendering($(this), viewModel);
+		}
 	}
 
 	/**
