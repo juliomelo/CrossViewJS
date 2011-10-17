@@ -2,6 +2,28 @@
  * A MVVM library.
  * 
  * @author Júlio César e Melo
+ * 
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 Júlio César e Melo
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is 
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 (function($) {
 
@@ -11,8 +33,8 @@
 	
 	if (!$.template) {
 		$.getScript("https://raw.github.com/BorisMoore/jsviews/master/jsrender.js");
-	}
 
+	}
 	if (!window.console) console = {};
 	console.log = console.log || function(){};
 	console.warn = console.warn || function(){};
@@ -74,10 +96,10 @@
 	}
 	
 	/**
-	 * Cria uma instância de View-Model para o wrapper do elemento DOM.
+     * Creates an instance of View-Model for a jQuery DOM element wrapper.
 	 * 
 	 * @param el
-	 * 				Wrapper do jQuery para o elemento do DOM.
+	 *              jQuery element wrapper.
 	 */
 	function setViewModel(el, name) {
 		if (!viewModel.classes[name])
@@ -111,10 +133,10 @@
 	}
 	
 	/**
-	 * Obtém uma instância do View-Model relativa ao elemento do DOM.
+     * Gets an instance of the View-Model for an DOM element.
 	 * 
 	 * @param el
-	 * 				Wrapper do jQuery para o elemento do DOM.
+	 *             jQuery element wrapper.
 	 */
 	function getViewModel(el) {
 		var id = el.attr(viewModel.attributes.bindId);
@@ -127,11 +149,17 @@
 		return viewModel.instances[id];
 	}
 
+    /**
+     * Registers a View-Model class.
+     */
 	function registerViewModel(name, prototype) {
-		viewModel.classes[name] = prototype || eval(name);
+		viewModel.classes[name] = prototype;
 		requestBinding();
 	}
 	
+    /**
+     * Initiates View-Model binding if it isn't already started.
+     */
 	function requestBinding() {
 		if (!viewModel.binding) {
 			viewModel.binding = true;
@@ -140,9 +168,11 @@
 	}
 
 	/**
-	 * Vincula os elementos do DOM ao View-Model.
+     * Binds DOM elements to View-Models.
 	 */
 	function bindViewModel() {
+        viewModel.binding = true;
+        
 		try {
 			$("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(function() {
 				try {
@@ -160,13 +190,12 @@
 							
 							eval("processedData = " + data + ";");
 														
-							viewModel.classes[name] = processedData;
-							
+							registerViewModel(name, processedData);					
 							setViewModel(that, name);
 						}).error(function(x, e) {
 							console.error("Error loading javascript for View-Model \"" + name + "\" from " + viewModel.resources[name] + ": " + e + ".");
 						});
-					} else if (loadingMapping == 0) {
+					} else if (loadingMapping === 0) {
 						console.error("View-Model class \"" + name + "\" not found!");
 					}
 				} catch (e) {
@@ -179,7 +208,7 @@
 	}	
 
 	/**
-	 * Vincula os comandos nos elementos DOM ao View-Model.
+	 * Binds commands to View-Models.
 	 */
 	function bindCommands() {
 		$("a[" + viewModel.attributes.command + "]").live("click", executeCommand);
@@ -187,6 +216,9 @@
 		$("form[" + viewModel.attributes.command + "]").live("submit", executeCommand);
 	}
 	
+    /**
+     * Read HTML links of MVVM bindings and do auto-register.
+     */
 	function autoRegister() {
 		$("link[rel='mvvm-mapping']").each(function() {
 			var href = $(this).attr("href");
@@ -210,11 +242,12 @@
 		});
 	}
 	
+    /**
+     * Loads templates for Views.
+     */
 	function loadTemplates() {		
-		if (!$.template) {
-			
+		if (!$.template) {			
 			console.log("$.template does not exist!");
-			
 			return;
 		}
 		
@@ -236,11 +269,17 @@
 				renderView();
 		});
 	}
-	
+
+    /**
+     * Render views that use a specific template.
+     */
 	function renderViewsFromTemplate(template) {
 		$("[" + view.attributes.binding + "='" + template + "']:not([" + view.attributes.lastRendering + "])").each(renderView);
 	}
 	
+    /**
+     * Render a view for a jQuery element.
+     */
 	function renderView() {
 		var template = $(this).attr(view.attributes.binding);
 		
