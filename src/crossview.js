@@ -185,6 +185,16 @@
                 
                 getRenderData : function() {
                 	return this;
+                },
+                
+                getData : function(attribute) {
+                	if (!attribute) {
+                		return this.data;
+                	} else if (this.data) {
+                		return this.data[attribute]
+                	} else {
+                		return container.find("[name=" + attribute + "]").val();
+                	}
                 }
 			}, instance);
 			
@@ -203,7 +213,7 @@
 				});
 			}
             
-            el.find("[" + view.attributes.binding + "]").each(renderView);
+            $(function() { el.find("[" + view.attributes.binding + "]").each(renderView); });
 		}
 	}
 	
@@ -250,53 +260,55 @@
 	function requestBinding() {
 		if (!viewModel.binding) {
 			viewModel.binding = true;
-			$(bindViewModel);
+			$(findAndBindViewModel);
 		}
 	}
 
 	/**
      * Binds DOM elements to View-Models.
 	 */
-	function bindViewModel() {
+	function findAndBindViewModel() {
         viewModel.binding = true;
         
 		try {
-			$("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(function() {
-				try {
-					var name = $(this).attr(viewModel.attributes.binding);
-					
-					if (viewModel.classes[name]) {					
-						setViewModel($(this), name);
-					} else if (viewModel.resources[name]) {
-						console.log("Loading javascript for View-Model \"" + name + "\" from " + getAbsoluteURL(viewModel.resources[name]) + ".");
-						
-                        $(this).find("[" + view.attributes.binding + "]").addClass(view.css.loadingViewModel);
-
-						var that = $(this);
-						
-						$.get(getAbsoluteURL(viewModel.resources[name])).success(function(data) {
-							var processedData = null;
-							
-							eval("processedData = " + data + ";");
-														
-							registerViewModel(name, processedData);					
-							requestBinding();
-						}).error(function(x, e) {
-							console.error("Error loading javascript for View-Model \"" + name + "\" from " + getAbsoluteURL(viewModel.resources[name]) + ": " + e + ".");
-						}).complete(function() {
-                            that.find("." + view.css.loadingViewModel).removeClass(view.css.loadingViewModel);
-                        });
-					} else if (loadingMapping === 0) {
-						console.error("View-Model class \"" + name + "\" not found!");
-					}
-				} catch (e) {
-					notifyError($(this), e);
-				}
-			});
+			$("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(bindViewModel);
 		} finally {
 			viewModel.binding = false;
 		}
-	}	
+	}
+	
+	function bindViewModel() {
+		try {
+			var name = $(this).attr(viewModel.attributes.binding);
+			
+			if (viewModel.classes[name]) {					
+				setViewModel($(this), name);
+			} else if (viewModel.resources[name]) {
+				console.log("Loading javascript for View-Model \"" + name + "\" from " + getAbsoluteURL(viewModel.resources[name]) + ".");
+				
+                $(this).find("[" + view.attributes.binding + "]").addClass(view.css.loadingViewModel);
+
+				var that = $(this);
+				
+				$.get(getAbsoluteURL(viewModel.resources[name])).success(function(data) {
+					var processedData = null;
+					
+					eval("processedData = " + data + ";");
+												
+					registerViewModel(name, processedData);					
+					requestBinding();
+				}).error(function(x, e) {
+					console.error("Error loading javascript for View-Model \"" + name + "\" from " + getAbsoluteURL(viewModel.resources[name]) + ": " + e + ".");
+				}).complete(function() {
+                    that.find("." + view.css.loadingViewModel).removeClass(view.css.loadingViewModel);
+                });
+			} else if (loadingMapping === 0) {
+				notifyError($(this), "View-Model class \"" + name + "\" not found!");
+			}
+		} catch (e) {
+			notifyError($(this), e);
+		}		
+	}
 
 	/**
 	 * Binds commands to View-Models.
@@ -326,7 +338,7 @@
 				throw e;
 			}).complete(function() {
 				if (--loadingMapping === 0) {
-					$(bindViewModel);
+					$(findAndBindViewModel);
 					$(loadTemplates);
 				}
 			});
@@ -373,7 +385,7 @@
 	function renderViewsFromTemplate(template) {
 		$("[" + view.attributes.binding + "='" + template + "']:not([" + view.attributes.lastRendering + "])").each(renderView);
 	}
-	
+
     /**
      * Render a view for a jQuery element.
      */
@@ -382,8 +394,8 @@
     		el = $(this);
 
 		var template = $(this).attr(view.attributes.binding);
-		var jsonUrl = getAbsoluteURL($(this).attr(view.attributes.jsonUrl));
-		var viewModel = getViewModel($(this));
+		var jsonUrl = $(this).attr(view.attributes.jsonUrl);
+		var viewModelinstance = getViewModel($(this));
 		
 		function doRendering(el, data) {
 			var content;
@@ -398,14 +410,18 @@
 			
 			el.html(content);			
 			el.attr(view.attributes.lastRendering, new Date());
+			
+			el.find("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(bindViewModel);
+			el.find("[" + view.attributes.binding + "']:not([" + view.attributes.lastRendering + "])").each(renderView);
 		}
         
-        if (view.templates[template].loading)
+        if (!view.templates[template] || view.templates[template].loading)
             return;
 		
 		// Check if the view needs to fetch a JSON data.
 		if (jsonUrl) {
-			
+
+			jsonUrl = getAbsoluteURL(jsonUrl);
 			console.log("Fetching JSON data from " + jsonUrl + ".");
 			
 			el.addClass(view.css.fetching);
@@ -422,10 +438,10 @@
 				}
 				
 				// Use a View-Model, if available.
-				if (viewModel || el.attr(view.attributes.withoutViewModel) != "true") {
+				if (viewModelinstance || el.attr(view.attributes.withoutViewModel) != "true") {
 					console.log("Rendering " + el + " using " + template + ".");
-					viewModel.setData(data);
-					doRendering(el, viewModel.getRenderData());
+					viewModelinstance.setData(data);
+					doRendering(el, viewModelinstance.getRenderData());
 				} else {
 					console.log("Rendering " + el + " using " + template + " without a View-Model");
 					doRendering(el, data);
@@ -435,10 +451,10 @@
 			}).error(function(x, e) {
 				notifyError(el, e);
 			});
-		} else if (viewModel) {
+		} else if (viewModelinstance) {
 			// Do basic rendering.
-			console.log("Rendering " + this + " using " + template + " and view-model " + viewModel.instanceId);
-			doRendering($(this), viewModel.getRenderData());
+			console.log("Rendering " + this + " using " + template + " and view-model " + viewModelinstance.instanceId);
+			doRendering($(this), viewModelinstance.getRenderData());
 		} else if (!el.hasClass(view.css.loadingViewModel)) {
             console.error("Can't render " + this + " because there is no view-model instanciated.");
 		}
@@ -465,12 +481,12 @@
 	}
 
 	$(autoRegister);
-	$(bindViewModel);
+	$(findAndBindViewModel);
 	$(bindCommands);
 	$(loadTemplates);
 	
 	$(window).ajaxComplete(function() {
-		$(bindViewModel);
+		$(findAndBindViewModel);
 		$(loadTemplates);
 	});
 
@@ -488,7 +504,7 @@
             return methods.init.apply( this, arguments );
 	    } else {
             $.error('Method ' +  method + ' does not exist on jQuery.crossview');
-        }
+    	}    	  
 	};
 	
 })(jQuery);
