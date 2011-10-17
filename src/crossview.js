@@ -227,19 +227,19 @@
 		var id = el.attr(viewModel.attributes.bindId);
 		
 		if (!id && !el.attr(viewModel.attributes.binding)) {
-			
-			for (var parent = el.parent(); !id && parent; parent = parent.parent()) {
+
+			for (var parent = el.parent(); !id && parent.length; parent = parent.parent()) {
 				id = parent.attr(viewModel.attributes.bindId);
 				
 				if (parent.attr(viewModel.attributes.binding))
 					break;
 			}
-			
+            
 			if (id)
 				el.attr(viewModel.attributes.bindId, id);
 		}
 		
-		return viewModel.instances[id];
+		return id ? viewModel.instances[id] : null;
 	}
 	
 	function getAncestorViewModel(viewModel) {
@@ -296,8 +296,8 @@
 					eval("processedData = " + data + ";");
 												
 					registerViewModel(name, processedData);					
-					requestBinding();
 				}).error(function(x, e) {
+                    viewModel.resources[name] = null;
 					console.error("Error loading javascript for View-Model \"" + name + "\" from " + getAbsoluteURL(viewModel.resources[name]) + ": " + e + ".");
 				}).complete(function() {
                     that.find("." + view.css.loadingViewModel).removeClass(view.css.loadingViewModel);
@@ -348,7 +348,7 @@
     /**
      * Loads templates for Views.
      */
-	function loadTemplates() {		
+	function loadTemplates() {	
 		$("[" + view.attributes.binding + "]:not([" + view.attributes.lastRendering + "])").each(function() {
 			var template = $(this).attr(view.attributes.binding);
 			
@@ -375,7 +375,7 @@
 					});
 				}
 			} else if (!view.templates[template])
-				renderView(this);
+				renderView();
 		});
 	}
 
@@ -389,13 +389,12 @@
     /**
      * Render a view for a jQuery element.
      */
-	function renderView(el) {
-        if (!el && this)
-    		el = $(this);
+	function renderView() {
+        var el = $(this);
 
 		var template = $(this).attr(view.attributes.binding);
 		var jsonUrl = $(this).attr(view.attributes.jsonUrl);
-		var viewModelinstance = getViewModel($(this));
+		var viewModelInstance = getViewModel($(this));
 		
 		function doRendering(el, data) {
 			var content;
@@ -438,10 +437,10 @@
 				}
 				
 				// Use a View-Model, if available.
-				if (viewModelinstance || el.attr(view.attributes.withoutViewModel) != "true") {
+				if (viewModelInstance && el.attr(view.attributes.withoutViewModel) != "true") {
 					console.log("Rendering " + el + " using " + template + ".");
-					viewModelinstance.setData(data);
-					doRendering(el, viewModelinstance.getRenderData());
+					viewModelInstance.setData(data);
+					doRendering(el, viewModelInstance.getRenderData());
 				} else {
 					console.log("Rendering " + el + " using " + template + " without a View-Model");
 					doRendering(el, data);
@@ -451,11 +450,11 @@
 			}).error(function(x, e) {
 				notifyError(el, e);
 			});
-		} else if (viewModelinstance) {
+		} else if (viewModelInstance) {
 			// Do basic rendering.
-			console.log("Rendering " + this + " using " + template + " and view-model " + viewModelinstance.instanceId);
-			doRendering($(this), viewModelinstance.getRenderData());
-		} else if (!el.hasClass(view.css.loadingViewModel)) {
+			console.log("Rendering " + this + " using " + template + " and view-model " + viewModelInstance.instanceId);
+			doRendering($(this), viewModelInstance.getRenderData());
+		} else if (!el.hasClass(view.css.loadignViewModel)) {
             console.error("Can't render " + this + " because there is no view-model instanciated.");
 		}
 	}
