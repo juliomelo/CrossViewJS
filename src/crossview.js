@@ -77,6 +77,10 @@
 	var view = {
 			templates : {},
 			resources : {},
+			css : {
+				fetching : "mvvm-fetching",
+				error : "mvvm-error"
+			},
 			attributes : {
 				binding : "data-view",
 				lastRendering : "data-view-rendered",
@@ -309,6 +313,8 @@
 			
 			console.log("Fetching JSON data from " + jsonUrl + ".");
 			
+			el.addClass(view.css.fetching);
+			
 			$.getJSON(jsonUrl).success(function(data) {
 				var path = el.attr(view.attributes.jsonPath);
 				
@@ -329,6 +335,10 @@
 					console.log("Rendering " + el + " using " + template + " without a View-Model");
 					doRendering(el, data);
 				}
+			}).complete(function() {
+				el.removeClass(view.css.fetching);
+			}).error(function(x, e) {
+				notifyError(el, e);
 			});
 		} else {
 			// Do basic rendering.
