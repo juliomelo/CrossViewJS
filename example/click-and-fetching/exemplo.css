@@ -1,9 +1,7 @@
 @CHARSET "UTF-8";
 
 .mvvm-fetching {
-	border: solid 1px red;
-	background-color: white;
-	color: red;
+	color: gray;
 }
 
 .mvvm-fetching:before {
