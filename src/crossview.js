@@ -119,8 +119,10 @@
 				withoutViewModel : "data-view-without-viewmodel",
 				jsonPath : "data-json-path",
 				jsonUrl : "data-json-url",
+                fetchMode : "data-fetch-mode",
                 className : "data-view-name",
-                render : "data-view-render"
+                render : "data-view-render",
+                renderMode : "data-view-render-mode"
 			}
 	};
 
@@ -333,28 +335,142 @@
     function bindFormRender() {
         $("form[" + view.attributes.render + "]").live("submit", renderFormSubmission);
     }
+    
+    function getJSON(url, options, strategy) {
+        var completeCallback = null;
+        var errorCallback = null;
+        var successCallback = null;
+        
+        if (!strategy)
+            strategy = "default";
+        
+        var run = {
+            complete : function(callback) {
+                completeCallback = callback;
+                return this;
+            }, error : function(callback) {
+                errorCallback = callback;
+                return this;
+            }, success : function(callback) {
+                successCallback = callback;
+                return this;
+            }
+        };
+        
+        var jsonStrategy = {
+            "yql-xml" : function(data) {
+                return data.query.results;
+            }
+        };
+        
+        var urlStrategy = {
+            "yql-xml": function(url, options) {
+                if (options.data) {
+                    var isFirst;
+                    
+                    if (url.indexOf("?") < 0) {
+                        url += "?";
+                        isFirst = true;
+                    }
+                        
+                    for (var item in options.data) {
+                        if (options.data[item]) {
+                            if (isFirst)
+                                isFirst = false;
+                            else
+                                url += "&";
+                                
+                            url += encodeURIComponent(item) + "=" + encodeURIComponent(options.data[item]);
+                        }
+                    }    
+                    
+                    options.data = null;
+                }
+                
+                return "http://query.yahooapis.com/v1/public/yql?format=json&q=select%20*%20from%20xml%20where%20url%3D%22" +
+                    encodeURIComponent(url) + "%22";
+            }
+        };
+        
+        if (urlStrategy[strategy])
+            url = urlStrategy[strategy](url, options);
+        
+        $.ajax(url, options)
+            .complete(function() { if (completeCallback) completeCallback(arguments); })
+            .error(function() { if (errorCallback) errorCallback(arguments); })
+            .success(function(data) {
+                if (jsonStrategy[strategy])
+                    data = jsonStrategy[strategy](data);
+                successCallback(data, Array.prototype.slice.call(arguments, 1));
+            });
+        
+        return run;
+    }
 
     function renderFormSubmission() {
         var form = $(this);
         var targetId = form.attr(view.attributes.render);
+        var renderMode = form.attr(view.attributes.renderMode) || "replace";
         var target = $("#" + targetId);
+        var strategy = form.attr(view.attributes.fetchMode);
+        
+        if (!target.length) {
+            console.error("Target element not found: " + targetId + ".");
+            return false;
+        }
+        
+        var renderStrategies = {
+            append : function(data) {
+                var viewName = form.attr(view.attributes.className);
+                var html = $("<div/>");
+                
+                render(viewName, html, data);
+                
+                if (html.children().length > 1)
+                    target.append(html);
+                else {
+                    var child = html.children();
+                    
+                    child.attr(view.attributes.lastRendering, html.attr(view.attributes.lastRendering));
+                    target.append(html.children());
+                    html.remove();
+                }
+            },
+            replace : function(data) {
+                var viewModelInstance;
+            
+                viewModelInstance = getViewModel(target);
+                    
+                if (!viewModelInstance)
+                    viewModelInstance = setViewModel(target, "$formSubmission");
+
+                viewModelInstance.setData(data);
+                target.each(renderView);
+            }
+        };
+        
+        if (!renderStrategies[renderMode]) {
+            console.error("Unknown render mode: " + renderMode + ".");
+            return false;
+        }
 
         try {
             var action = form.attr("action");
             var method = form.attr("method");
             var targetView = target.attr(view.attributes.binding);
-            var viewModelInstance = getViewModel(target);
+            
+            if (!targetView) {
+                var error = 'Undefined view for target element "' + targetID + '".';
+                notifyError(target, error);
+                return false;
+            }
             
             target.addClass(view.css.fetching);
-            
-            if (!viewModelInstance)
-                viewModelInstance = setViewModel(target, "$formSubmission");
                 
             requireTemplate(targetView, function() {
-                $.ajax(action, { type : method, data : form.serializeObject() })
+                getJSON(action, { type : method, data : form.serializeObject() }, strategy)
                     .success(function(data) {
-                        viewModelInstance.setData(data);
-                        target.each(renderView);
+                        renderStrategies[renderMode](data);
                     })
                     .complete(function() {
                         target.removeClass(view.css.fetching);
@@ -486,6 +602,37 @@
 	}
 
     /**
+     * Renders a data into an element using a template.
+     * 
+     * @param template
+     *          Template name
+     * 
+     * @param el
+     *          jQuery element wrapper
+     * 
+     * @param data
+     *          Data passed to template.
+     */
+	function render(template, el, data) {
+		try {
+            clearError(el);
+            requireTemplate(template, function() {
+			    var content = templateEngine.render(template, data);
+                
+            	el.html(content);
+        		el.attr(view.attributes.lastRendering, new Date());
+        
+        		el.find("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(bindViewModel);
+        		el.find("[" + view.attributes.binding + "']:not([" + view.attributes.lastRendering + "])").each(renderView);
+            });
+		} catch (e) {
+			console.error("Error rendering data using template \"" + template + "\": " + e);
+			console.error(data);
+			notifyError(el, e);
+		}
+	}
+
+    /**
      * Render a view for a jQuery element.
      */
 	function renderView() {
@@ -494,24 +641,6 @@
 		var template = $(this).attr(view.attributes.binding);
 		var jsonUrl = $(this).attr(view.attributes.jsonUrl);
 		var viewModelInstance = getViewModel($(this));
-
-		function doRendering(el, data) {
-			var content;
-
-			try {
-				content = templateEngine.render(template, data);
-			} catch (e) {
-				console.error("Error rendering data using template \"" + template + "\": " + e);
-				console.error(data);
-				notifyError(el, e);
-			}
-
-			el.html(content);
-			el.attr(view.attributes.lastRendering, new Date());
-
-			el.find("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(bindViewModel);
-			el.find("[" + view.attributes.binding + "']:not([" + view.attributes.lastRendering + "])").each(renderView);
-		}
 
         if (!view.templates[template] || view.templates[template].loading)
             return;
@@ -527,18 +656,22 @@
 			el.addClass(view.css.fetching);
 
 			$.getJSON(jsonUrl).success(function(data) {
-				// Traverse JSON data path...
-                data = traverseJSON(data, path);
-
-				// Use a View-Model, if available.
-				if (viewModelInstance && el.attr(view.attributes.withoutViewModel) != "true") {
-					console.log("Rendering " + el + " using " + template + ".");
-					viewModelInstance.setData(data);
-					doRendering(el, viewModelInstance.getRenderData());
-				} else {
-					console.log("Rendering " + el + " using " + template + " without a View-Model");
-					doRendering(el, data);
-				}
+                try {
+                    // Traverse JSON data path...
+                    data = traverseJSON(data, path);
+    
+                    // Use a View-Model, if available.
+                    if (viewModelInstance && el.attr(view.attributes.withoutViewModel) != "true") {
+                        console.log("Rendering " + el + " using " + template + ".");
+                        viewModelInstance.setData(data);
+                        render(template, el, viewModelInstance.getRenderData());
+                    } else {
+                        console.log("Rendering " + el + " using " + template + " without a View-Model");
+                        render(template, el, data);
+                    }
+                } catch (e) {
+                    notifyError(el, e);
+                }
 			}).complete(function() {
 				el.removeClass(view.css.fetching);
 			}).error(function(x, e) {
@@ -548,9 +681,13 @@
 			// Do basic rendering.
 			console.log("Rendering " + this + " using " + template + " and view-model " + viewModelInstance.instanceId);
             
-            var data = viewModelInstance.getRenderData(path);            
-			doRendering($(this), traverseJSON(data, path));
-		} else if (!el.hasClass(view.css.loadignViewModel)) {
+            try {
+                var data = viewModelInstance.getRenderData(path);            			
+                render(template, $(this), traverseJSON(data, path));
+            } catch (e) {
+                notifyError($(this), e);
+            }
+		} else if (!el.hasClass(view.css.loadingViewModel)) {
             console.error("Can't render " + this + " because there is no view-model instanciated.");
 		}
 	}
@@ -569,7 +706,7 @@
 	/**
 	 * Executes a command.
 	 */
-	function executeCommand() {
+	function executeCommand(data) {
 		var command = $(this).attr(viewModel.attributes.command);
 		var instance = getViewModel($(this));
 
@@ -579,7 +716,7 @@
 			instance = getAncestorViewModel(instance);
 
 		if (instance) {
-			instance[command](this);
+			instance[command](this, data);
 			return false;
 		}
 		else
