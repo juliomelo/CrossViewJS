@@ -202,7 +202,7 @@
                 	} else if (this.data) {
                 		return this.data[attribute]
                 	} else {
-                		return container.find("[name=" + attribute + "]").val();
+                		return this.container.find("[name=" + attribute + "]").val();
                 	}
                 }
 			}, instance);
