@@ -727,7 +727,6 @@
                 console.log("Template " + template + " loaded from " + view.resources[template] + ".");
                 templateEngine.setTemplate(template, data);
                 view.templates[template].loading = false;
-                renderViewsFromTemplate(template);
                 
                 // Invoke callbacks.
                 while (view.templates[template].callback.length) {
@@ -749,13 +748,6 @@
                 callback();
         }
     }
-
-    /**
-     * Render views that use a specific template.
-     */
-	function renderViewsFromTemplate(template) {
-		$("[" + view.attributes.binding + "='" + template + "']:not([" + view.attributes.lastRendering + "])").each(renderView);
-	}
 
     /**
      * Renders a data into an element using a template.
