@@ -1,22 +1,22 @@
 /**
  * A MVVM library.
- * 
+ *
  * @author Júlio César e Melo
- * 
+ *
  * The MIT License (MIT)
- * 
+ *
  * Copyright (c) 2011 Júlio César e Melo
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is 
+ * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,10 +30,10 @@
     if (!$) {
     	throw "jQuery not found!";
 	}
-	
+
 	// Identify and create a wrapper for template engine.
 	var templateEngine = null;
-	
+
     function setupTemplateEngine() {
     	// jsrender - https://github.com/BorisMoore/jsrender
     	if ($.template && $.render) {
@@ -44,7 +44,7 @@
     				render : $.render
     		};
     	}
-    	// tmpl (beta) - 
+    	// tmpl (beta) -
     	else if ($.template && !$.render && $.tmpl) {
     		templateEngine = {
     				setTemplate : $.template,
@@ -52,40 +52,46 @@
     		};
     	}
     }
-    
+
     $(function() {
         setupTemplateEngine();
-        
+
         if (!templateEngine)
             setTimeout(setupTemplateEngine, 150);
     });
-    
+
 	if (!window.console) console = {};
 	console.log = console.log || function(){};
 	console.warn = console.warn || function(){};
 	console.error = console.error || function(){};
 	console.info = console.info || function(){};
-	
+
 	/**
-	 * Tells if mapping is being loaded. 
+	 * Tells if mapping is being loaded.
 	 */
 	var loadingMapping = 0;
-	
+
 	var viewModel = {
 			bindidSeq : 0,
 			instances : [],
-			classes : {},
-			resources : {},
-			
+			classes : {
+                "$formSubmission" : function() {
+                    return  {
+                        getRenderData : function() { return this.data; }
+                    };
+                }
+            },
+            resources : {},
+
 			/**
 			 * Tells if binding has been requested.
 			 */
 			binding : false,
-			
+
 			css : {
 				error : "mvvm-error"
 			},
-			
+
 			attributes : {
 				error : "data-viewmodel-error",
 				bindId : "data-viewmodel-instance",
@@ -93,12 +99,12 @@
 				command : "data-command",
 				className : "data-viewmodel-name"
 			},
-			
+
 			functions : {
 				initialize : "initialize"
 			}
 	};
-	
+
 	var view = {
 			templates : {},
 			resources : {},
@@ -112,30 +118,33 @@
 				lastRendering : "data-view-rendered",
 				withoutViewModel : "data-view-without-viewmodel",
 				jsonPath : "data-json-path",
-				jsonUrl : "data-json-url"
+				jsonUrl : "data-json-url",
+                className : "data-view-name",
+                render : "data-view-render"
 			}
 	};
-	
+
 	var link = {
-			autoRegister : "mvvm-mapping"
+			autoRegister : "mvvm-mapping",
+            view : "mvvm-view"
 	};
-	
+
 	var config = {
 			relativePath : null
 	};
-	
+
 	function notifyError(el, exception) {
 		el.addClass(viewModel.css.error);
 		el.attr(viewModel.attributes.error, exception);
-		
+
 		console.error(exception);
 	}
-	
+
 	function clearError(el) {
 		el.removeClass(viewModel.css.error);
 		el.attr(viewModel.attributes.error, null);
 	}
-	
+
 	/**
 	 * Get an absolute URL for a path.
 	 */
@@ -145,9 +154,9 @@
 		else
 			return config.relativePath + path;
 	}
-	
+
 	/**
-	 * Set a relative path for RESTful services. 
+	 * Set a relative path for RESTful services.
 	 */
 	function setRelativePath(url) {
 		if (url.charAt(url.length - 1) == "/")
@@ -157,7 +166,7 @@
 	}
 	/**
      * Creates an instance of View-Model for a jQuery DOM element wrapper.
-	 * 
+	 *
 	 * @param el
 	 *              jQuery element wrapper.
 	 */
@@ -165,28 +174,28 @@
 		if (!viewModel.classes[name])
 			notifyError(el, "View-Model class not found: " + name + ".");
 		else {
-			console.log("Binding " + name + " to " + el);	
+			console.log("Binding " + name + " to " + el);
 
 			var instance = new viewModel.classes[name]();
             var instanceId = ++viewModel.bindidSeq;
-			
+
 			instance = $.extend(null, {
 				updateView : function() {
 					this.container.find("[" + view.attributes.binding + "]").each(renderView);
 				},
-				
+
 				setData : function(data) {
 					this.data = data;
 				},
-                
+
                 instanceId : instanceId,
-                
+
                 container : el,
-                
+
                 getRenderData : function() {
                 	return this;
                 },
-                
+
                 getData : function(attribute) {
                 	if (!attribute) {
                 		return this.data;
@@ -197,13 +206,13 @@
                 	}
                 }
 			}, instance);
-			
-			viewModel.instances[instanceId] = instance; 
+
+			viewModel.instances[instanceId] = instance;
 			el.attr(viewModel.attributes.bindId, instanceId);
-			
+
 			// Executes "initialize" method, if the view-model has one.
 			if (viewModel.functions.initialize in instance) {
-				$(function() { 
+				$(function() {
 					try {
 						instance[viewModel.functions.initialize](el, instanceId);
 						clearError(el);
@@ -212,36 +221,38 @@
 					}
 				});
 			}
-            
+
             $(function() { el.find("[" + view.attributes.binding + "]").each(renderView); });
+            
+            return instance;
 		}
 	}
-	
+
 	/**
      * Gets an instance of the View-Model for an DOM element.
-	 * 
+	 *
 	 * @param el
 	 *             jQuery element wrapper.
 	 */
 	function getViewModel(el) {
 		var id = el.attr(viewModel.attributes.bindId);
-		
+
 		if (!id && !el.attr(viewModel.attributes.binding)) {
 
 			for (var parent = el.parent(); !id && parent.length; parent = parent.parent()) {
 				id = parent.attr(viewModel.attributes.bindId);
-				
+
 				if (parent.attr(viewModel.attributes.binding))
 					break;
 			}
-            
+
 			if (id)
 				el.attr(viewModel.attributes.bindId, id);
 		}
-		
+
 		return id ? viewModel.instances[id] : null;
 	}
-	
+
 	function getAncestorViewModel(viewModel) {
 		return getViewModel(viewModel.container.parent());
 	}
@@ -253,7 +264,7 @@
 		viewModel.classes[name] = prototype;
 		requestBinding();
 	}
-	
+
     /**
      * Initiates View-Model binding if it isn't already started.
      */
@@ -269,33 +280,33 @@
 	 */
 	function findAndBindViewModel() {
         viewModel.binding = true;
-        
+
 		try {
 			$("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(bindViewModel);
 		} finally {
 			viewModel.binding = false;
 		}
 	}
-	
+
 	function bindViewModel() {
 		try {
 			var name = $(this).attr(viewModel.attributes.binding);
-			
-			if (viewModel.classes[name]) {					
+
+			if (viewModel.classes[name]) {
 				setViewModel($(this), name);
 			} else if (viewModel.resources[name]) {
 				console.log("Loading javascript for View-Model \"" + name + "\" from " + getAbsoluteURL(viewModel.resources[name]) + ".");
-				
+
                 $(this).find("[" + view.attributes.binding + "]").addClass(view.css.loadingViewModel);
 
 				var that = $(this);
-				
+
 				$.get(getAbsoluteURL(viewModel.resources[name])).success(function(data) {
 					var processedData = null;
-					
+
 					eval("processedData = " + data + ";");
-												
-					registerViewModel(name, processedData);					
+
+					registerViewModel(name, processedData);
 				}).error(function(x, e) {
                     viewModel.resources[name] = null;
 					console.error("Error loading javascript for View-Model \"" + name + "\" from " + getAbsoluteURL(viewModel.resources[name]) + ": " + e + ".");
@@ -307,7 +318,7 @@
 			}
 		} catch (e) {
 			notifyError($(this), e);
-		}		
+		}
 	}
 
 	/**
@@ -318,21 +329,61 @@
 		$("button[" + viewModel.attributes.command + "]").live("click", executeCommand);
 		$("form[" + viewModel.attributes.command + "]").live("submit", executeCommand);
 	}
-	
+
+    function bindFormRender() {
+        $("form[" + view.attributes.render + "]").live("submit", renderFormSubmission);
+    }
+
+    function renderFormSubmission() {
+        var form = $(this);
+        var targetId = form.attr(view.attributes.render);
+        var target = $("#" + targetId);
+
+        try {
+            var action = form.attr("action");
+            var method = form.attr("method");
+            var targetView = target.attr(view.attributes.binding);
+            var viewModelInstance = getViewModel(target);
+            
+            target.addClass(view.css.fetching);
+            
+            if (!viewModelInstance)
+                viewModelInstance = setViewModel(target, "$formSubmission");
+                
+            requireTemplate(targetView, function() {
+                $.ajax(action, { type : method, data : form.serializeObject() })
+                    .success(function(data) {
+                        viewModelInstance.setData(data);
+                        target.each(renderView);
+                    })
+                    .complete(function() {
+                        target.removeClass(view.css.fetching);
+                    })
+                    .error(function(x, e) {
+                        notifyError(target, e);
+                    });
+            });
+        } catch (e) {
+            notifyError(target, e);
+        } finally {
+            return false;
+        }            
+    }
+
     /**
      * Read HTML links of MVVM bindings and do auto-register.
      */
 	function autoRegister() {
 		$("link[rel='" + link.autoRegister + "']").each(function() {
 			var href = $(this).attr("href");
-			
+
 			console.log("Loading View-Model class mapping from " + href + ".");
-			
+
 			loadingMapping++;
-			
+
 			$.getJSON(href).success(function(json) {
-				viewModel.resources = json.viewModel;
-				view.resources = json.view;
+				$.extend(viewModel.resources, json.viewModel);
+				$.extend(view.resources, json.view);
 			}).error(function(x, e) {
 				console.error("Failed to load View-Model class mapping from " + href + ".");
 				throw e;
@@ -343,41 +394,89 @@
 				}
 			});
 		});
+
+        $("link[rel='" + link.view + "']").each(function() {
+            var href = $(this).attr("href");
+            var name = $(this).attr(view.attributes.className);
+
+            if (!name)
+                name = extractNameFromUrl(href);
+
+			console.log("Registering template for view \"" + name + "\" on " + href + ".");
+            view.resources[name] = href;
+        });
 	}
-	
+
+    function extractNameFromUrl(url) {
+        var idx = url.lastIndexOf("/");
+
+        if (idx >= 0)
+            url = url.substr(idx + 1);
+
+        idx = url.lastIndexOf(".");
+
+        if (idx >= 0)
+            url = url.substr(0, idx);
+
+        return url;
+    }
+
     /**
      * Loads templates for Views.
      */
-	function loadTemplates() {	
+	function loadTemplates() {
 		$("[" + view.attributes.binding + "]:not([" + view.attributes.lastRendering + "])").each(function() {
 			var template = $(this).attr(view.attributes.binding);
-			
-			if (!view.templates[template]) {
-				if (view.resources[template]) {
-					console.log("Loading template " + template + " from " + view.resources[template] + ".");
 
-                    view.templates[template] = {
-                        url : view.resources[template],
-                        loading : true
-                    };
-                    
-					$.ajax({
-						url : getAbsoluteURL(view.resources[template]),
-						dataType : "text"
-					}).success(function(data) {
-						console.log("Template " + template + " loaded from " + view.resources[template] + ".");
-						templateEngine.setTemplate(template, data);
-						view.templates[template].loading = false;
-						renderViewsFromTemplate(template);
-					}).error(function(x, e) {
-						console.error("Error loading template \"" + template + "\" from " + view.resources[template] + ": " + e + ".");
-                        view.templates[template] = null;
-					});
-				}
-			} else if (!view.templates[template])
+			if (!view.templates[template])
+                requireTemplate(template)
+			else
 				renderView();
 		});
 	}
+
+    function requireTemplate(template, callback) {
+        if (!view.templates[template] && view.resources[template]) {
+            console.log("Loading template " + template + " from " + view.resources[template] + ".");
+
+            view.templates[template] = {
+                url : view.resources[template],
+                loading : true,
+                callback : []
+            };
+            
+            if (callback)
+                view.templates[template].callback.push(callback);
+
+            $.ajax({
+                url: getAbsoluteURL(view.resources[template]),
+                dataType: "text"
+            }).success(function(data) {
+                console.log("Template " + template + " loaded from " + view.resources[template] + ".");
+                templateEngine.setTemplate(template, data);
+                view.templates[template].loading = false;
+                renderViewsFromTemplate(template);
+                
+                // Invoke callbacks.
+                while (view.templates[template].callback.length) {
+                    var cb = view.templates[template].callback.pop();
+                    try {
+                        cb();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                }
+            }).error(function(x, e) {
+                console.error("Error loading template \"" + template + "\" from " + view.resources[template] + ": " + e + ".");
+                view.templates[template] = null;
+            });
+        } else if (view.templates[template] && callback) {
+            if (view.templates[template].loading)
+                view.templates[template].callback.push(callback);
+            else 
+                callback();
+        }
+    }
 
     /**
      * Render views that use a specific template.
@@ -395,10 +494,10 @@
 		var template = $(this).attr(view.attributes.binding);
 		var jsonUrl = $(this).attr(view.attributes.jsonUrl);
 		var viewModelInstance = getViewModel($(this));
-		
+
 		function doRendering(el, data) {
 			var content;
-			
+
 			try {
 				content = templateEngine.render(template, data);
 			} catch (e) {
@@ -406,36 +505,31 @@
 				console.error(data);
 				notifyError(el, e);
 			}
-			
-			el.html(content);			
+
+			el.html(content);
 			el.attr(view.attributes.lastRendering, new Date());
-			
+
 			el.find("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(bindViewModel);
 			el.find("[" + view.attributes.binding + "']:not([" + view.attributes.lastRendering + "])").each(renderView);
 		}
-        
+
         if (!view.templates[template] || view.templates[template].loading)
             return;
-		
+
+		var path = el.attr(view.attributes.jsonPath);
+
 		// Check if the view needs to fetch a JSON data.
 		if (jsonUrl) {
 
 			jsonUrl = getAbsoluteURL(jsonUrl);
 			console.log("Fetching JSON data from " + jsonUrl + ".");
-			
+
 			el.addClass(view.css.fetching);
-			
+
 			$.getJSON(jsonUrl).success(function(data) {
-				var path = el.attr(view.attributes.jsonPath);
-				
 				// Traverse JSON data path...
-				if (path) {
-					path = path.split(".");
-					
-					for (var i = 0; i < path.length; i++)
-						data = data[path[i]];
-				}
-				
+                data = traverseJSON(data, path);
+
 				// Use a View-Model, if available.
 				if (viewModelInstance && el.attr(view.attributes.withoutViewModel) != "true") {
 					console.log("Rendering " + el + " using " + template + ".");
@@ -453,11 +547,24 @@
 		} else if (viewModelInstance) {
 			// Do basic rendering.
 			console.log("Rendering " + this + " using " + template + " and view-model " + viewModelInstance.instanceId);
-			doRendering($(this), viewModelInstance.getRenderData());
+            
+            var data = viewModelInstance.getRenderData(path);            
+			doRendering($(this), traverseJSON(data, path));
 		} else if (!el.hasClass(view.css.loadignViewModel)) {
             console.error("Can't render " + this + " because there is no view-model instanciated.");
 		}
 	}
+    
+    function traverseJSON(data, path) {
+        if (path) {
+            path = path.split(".");
+        
+            for (var i = 0; i < path.length; i++)
+                data = data[path[i]];
+        }
+        
+        return data;
+    }
 
 	/**
 	 * Executes a command.
@@ -465,12 +572,12 @@
 	function executeCommand() {
 		var command = $(this).attr(viewModel.attributes.command);
 		var instance = getViewModel($(this));
-		
+
 		console.log("Executing command \"" + command + "\".");
-		
+
 		while (instance && !instance[command])
 			instance = getAncestorViewModel(instance);
-		
+
 		if (instance) {
 			instance[command](this);
 			return false;
@@ -482,8 +589,9 @@
 	$(autoRegister);
 	$(findAndBindViewModel);
 	$(bindCommands);
+    $(bindFormRender);
 	$(loadTemplates);
-	
+
 	$(window).ajaxComplete(function() {
 		$(findAndBindViewModel);
 		$(loadTemplates);
@@ -503,7 +611,28 @@
             return methods.init.apply( this, arguments );
 	    } else {
             $.error('Method ' +  method + ' does not exist on jQuery.crossview');
-    	}    	  
+    	}
 	};
-	
+
+    if (!$.fn.serializeObject) {
+        $.fn.serializeObject = function()
+        {
+            var o = {};
+            var a = this.serializeArray();
+            $.each(a, function() {
+                if (o[this.name] !== undefined) {
+                    if (!o[this.name].push) {
+                        o[this.name] = [o[this.name]];
+                    }
+                    o[this.name].push(this.value || '');
+                } else {
+                    o[this.name] = this.value || '';
+                }
+            });
+            return o;
+        };
+    }
+
 })(jQuery);
+
+var teste = true;
