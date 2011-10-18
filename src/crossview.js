@@ -28,7 +28,7 @@
 (function($) {
 
     if (!$) {
-    	throw "jQuery not found!";
+        throw "jQuery not found!";
 	}
 
 	// Identify and create a wrapper for template engine.
