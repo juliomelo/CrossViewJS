@@ -38,22 +38,22 @@
      * Identifies loaded template engine and creates a wrapper for it.
      */
     function setupTemplateEngine() {
-    	// jsrender - https://github.com/BorisMoore/jsrender
-    	if ($.template && $.render) {
-    		templateEngine = {
-    				setTemplate : function(name, data) {
-    					$("<script id='mvvm-template-" + name + "' type='text/x-jquery-tmpl'>" + data + "</script>").template(name);
-    				},
-    				render : $.render
-    		};
-    	}
-    	// tmpl (beta) -
-    	else if ($.template && !$.render && $.tmpl) {
-    		templateEngine = {
-    				setTemplate : $.template,
-    				render : $.tmpl
-    		};
-    	}
+        // jsrender - https://github.com/BorisMoore/jsrender
+        if ($.template && $.render) {
+            templateEngine = {
+                    setTemplate : function(name, data) {
+                        $("<script id='mvvm-template-" + name + "' type='text/x-jquery-tmpl'>" + data + "</script>").template(name);
+                    },
+                    render : $.render
+            };
+        }
+        // tmpl (beta) -
+        else if ($.template && !$.render && $.tmpl) {
+            templateEngine = {
+                    setTemplate : $.template,
+                    render : $.tmpl
+            };
+        }
     }
 
     $(function() {
@@ -525,7 +525,11 @@
             return false;
         }
         
+        // Render strategies definition.
         var renderStrategies = {
+            /**
+             * Appends rendered html to a target.
+             */
             append : function(data) {
                 var viewName = target.attr(view.attributes.binding);
                 var path = target.attr(view.attributes.jsonPath);
@@ -551,6 +555,12 @@
                     html.remove();
                 }
             },
+            
+            /**
+             * Sets data to the view-model and use it to render the target.
+             * In this case, the data still stored on view-model instance
+             * after the view is rendered.
+             */
             "view-model" : function(data) {
                 var viewModelInstance;
             
@@ -562,6 +572,11 @@
                 viewModelInstance.setData(data);
                 target.each(renderView);
             },
+            
+            /**
+             * Replaces the content of a view, rendering it directly using the
+             * data.
+             */
             replace : function(data) {
                 var viewName = target.attr(view.attributes.binding);
                 var path = target.attr(view.attributes.jsonPath);
