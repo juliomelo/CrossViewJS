@@ -34,6 +34,9 @@
 	// Identify and create a wrapper for template engine.
 	var templateEngine = null;
 
+    /**
+     * Identifies loaded template engine and creates a wrapper for it.
+     */
     function setupTemplateEngine() {
     	// jsrender - https://github.com/BorisMoore/jsrender
     	if ($.template && $.render) {
@@ -71,9 +74,23 @@
 	 */
 	var loadingMapping = 0;
 
+    /**
+     * View-Model context.
+     */
 	var viewModel = {
+            /**
+             * Sequential bind id.
+             */
 			bindidSeq : 0,
+            
+            /**
+             * Instances of view-model.
+             */
 			instances : [],
+            
+            /**
+             * Class definitions for view-models.
+             */
 			classes : {
                 "$formSubmission" : function() {
                     return  {
@@ -81,6 +98,40 @@
                     };
                 }
             },
+            
+            /**
+             * A prototype for model-view instances.
+             */
+            instancePrototype : {
+                initialize : function(el, instanceid) {
+                },
+                
+                updateView : function() {
+                    this.container.find("[" + view.attributes.binding + "]").each(renderView);
+				},
+
+				setData : function(data) {
+					this.data = data;
+				},
+
+                getRenderData : function() {
+                    return this;
+                },
+
+                getData : function(attribute) {
+                    if (!attribute) {
+                        return this.data;
+                    } else if (this.data) {
+                        return this.data[attribute];
+                    } else {
+                        return this.container.find("[name=" + attribute + "]").val();
+                    }
+                }
+            },
+            
+            /**
+             * Resouce mapping, used to load model-view classes.
+             */
             resources : {},
 
 			/**
@@ -88,31 +139,51 @@
 			 */
 			binding : false,
 
+            /**
+             * CSS constants.
+             */
 			css : {
 				error : "mvvm-error"
 			},
 
+            /**
+             * DOM element attributes.
+             */
 			attributes : {
 				error : "data-viewmodel-error",
 				bindId : "data-viewmodel-instance",
 				binding : "data-viewmodel",
 				command : "data-command",
 				className : "data-viewmodel-name"
-			},
-
-			functions : {
-				initialize : "initialize"
 			}
 	};
 
+    /**
+     * View context.
+     */
 	var view = {
+            /**
+             * Loaded templates.
+             */
 			templates : {},
+            
+            /**
+             * Resource mapping.
+             */
 			resources : {},
+            
+            /**
+             * CSS constants.
+             */
 			css : {
 				fetching : "mvvm-fetching",
                 loadingViewModel : "mvvm-fetching",
 				error : "mvvm-error"
 			},
+            
+            /**
+             * DOM element attributes.
+             */
 			attributes : {
 				binding : "data-view",
 				lastRendering : "data-view-rendered",
@@ -126,15 +197,30 @@
 			}
 	};
 
+    /**
+     * Link names constants.
+     */
 	var link = {
 			autoRegister : "mvvm-mapping",
             view : "mvvm-view"
 	};
 
+    /**
+     * User configuration.
+     */
 	var config = {
 			relativePath : null
 	};
 
+    /**
+     * Set error notification on an element.
+     * 
+     * @param el
+     *          jQuery element wrapper.
+     * 
+     * @param exception
+     *          Message error.
+     */
 	function notifyError(el, exception) {
 		el.addClass(viewModel.css.error);
 		el.attr(viewModel.attributes.error, exception);
@@ -142,6 +228,12 @@
 		console.error(exception);
 	}
 
+    /**
+     * Unset error notification from an element.
+     * 
+     * @param el
+     *          jQuery element wrapper.
+     */
 	function clearError(el) {
 		el.removeClass(viewModel.css.error);
 		el.attr(viewModel.attributes.error, null);
@@ -158,7 +250,8 @@
 	}
 
 	/**
-	 * Set a relative path for RESTful services.
+	 * Set a relative path for RESTful services. This is used in attributes
+     * like data-json-url.
 	 */
 	function setRelativePath(url) {
 		if (url.charAt(url.length - 1) == "/")
@@ -171,6 +264,9 @@
 	 *
 	 * @param el
 	 *              jQuery element wrapper.
+     * 
+     * @param name
+     *              Class name of a View-Model.
 	 */
 	function setViewModel(el, name) {
 		if (!viewModel.classes[name])
@@ -181,49 +277,28 @@
 			var instance = new viewModel.classes[name]();
             var instanceId = ++viewModel.bindidSeq;
 
-			instance = $.extend(null, {
-				updateView : function() {
-					this.container.find("[" + view.attributes.binding + "]").each(renderView);
-				},
-
-				setData : function(data) {
-					this.data = data;
-				},
-
-                instanceId : instanceId,
-
-                container : el,
-
-                getRenderData : function() {
-                	return this;
-                },
-
-                getData : function(attribute) {
-                	if (!attribute) {
-                		return this.data;
-                	} else if (this.data) {
-                		return this.data[attribute]
-                	} else {
-                		return this.container.find("[name=" + attribute + "]").val();
-                	}
-                }
-			}, instance);
+            // Instantiate a view-model class, specializing our portotype.
+			instance = $.extend(null,
+                viewModel.instancePrototype,
+                {
+                    instanceId : instanceId,
+                    container : el
+			    }, instance);
 
 			viewModel.instances[instanceId] = instance;
 			el.attr(viewModel.attributes.bindId, instanceId);
 
 			// Executes "initialize" method, if the view-model has one.
-			if (viewModel.functions.initialize in instance) {
-				$(function() {
-					try {
-						instance[viewModel.functions.initialize](el, instanceId);
-						clearError(el);
-					} catch (e) {
-						notifyError(el, e);
-					}
-				});
-			}
+			$(function() {
+				try {
+					instance.initialize(el, instanceId);
+					clearError(el);
+				} catch (e) {
+					notifyError(el, e);
+				}
+			});
 
+            // Since we have already instantiated the view-model, try to render its view.
             $(function() { el.find("[" + view.attributes.binding + "]").each(renderView); });
             
             return instance;
@@ -231,16 +306,24 @@
 	}
 
 	/**
-     * Gets an instance of the View-Model for an DOM element.
+     * Gets an instance of a View-Model for an DOM element. If the element
+     * itself does not have a view-model binded, get recursively from its
+     * ancestors.
+     * 
+     * This method stop traversing the ancestor til root element if it
+     * find one that have a binding, but still not instantiated. In this case,
+     * it returns nll.
 	 *
 	 * @param el
 	 *             jQuery element wrapper.
+     * 
+     * @return
+     *              View-model instance for an DOM element.
 	 */
 	function getViewModel(el) {
 		var id = el.attr(viewModel.attributes.bindId);
 
 		if (!id && !el.attr(viewModel.attributes.binding)) {
-
 			for (var parent = el.parent(); !id && parent.length; parent = parent.parent()) {
 				id = parent.attr(viewModel.attributes.bindId);
 
@@ -255,6 +338,10 @@
 		return id ? viewModel.instances[id] : null;
 	}
 
+    /**
+     * Gets the overriden view-model, which is a view-model instance of
+     * its ancestor.
+     */
 	function getAncestorViewModel(viewModel) {
 		return getViewModel(viewModel.container.parent());
 	}
@@ -290,6 +377,11 @@
 		}
 	}
 
+    /**
+     * Bind a view-model to an element.
+     * 
+     * [jQuery] This MUST be used on a wrapper.
+     */
 	function bindViewModel() {
 		try {
 			var name = $(this).attr(viewModel.attributes.binding);
@@ -306,6 +398,9 @@
 				$.get(getAbsoluteURL(viewModel.resources[name])).success(function(data) {
 					var processedData = null;
 
+                    /* Since data is a function (yes... javascript function code),
+                     * use eval.
+                     */
 					eval("processedData = " + data + ";");
 
 					registerViewModel(name, processedData);
@@ -332,10 +427,16 @@
 		$("form[" + viewModel.attributes.command + "]").live("submit", executeCommand);
 	}
 
+    /**
+     * Binds form submission that will render on an explicit target view.
+     */
     function bindFormRender() {
-        $("form[" + view.attributes.render + "]").live("submit", renderFormSubmission);
+        $("form[" + view.attributes.render + "]").live("submit", renderFromFormSubmission);
     }
     
+    /**
+     * Gets a JSON from an URL using an conversion strategy (i.e. YQL).
+     */
     function getJSON(url, options, strategy) {
         var completeCallback = null;
         var errorCallback = null;
@@ -407,7 +508,12 @@
         return run;
     }
 
-    function renderFormSubmission() {
+    /**
+     * Submit a form and render its result to a specific view.
+     * 
+     * [jQuery] This MUST be used on a wrapper.
+     */
+    function renderFromFormSubmission() {
         var form = $(this);
         var targetId = form.attr(view.attributes.render);
         var renderMode = form.attr(view.attributes.renderMode) || "replace";
@@ -445,7 +551,7 @@
                     html.remove();
                 }
             },
-            replace : function(data) {
+            "view-model" : function(data) {
                 var viewModelInstance;
             
                 viewModelInstance = getViewModel(target);
@@ -455,6 +561,13 @@
 
                 viewModelInstance.setData(data);
                 target.each(renderView);
+            },
+            replace : function(data) {
+                var viewName = target.attr(view.attributes.binding);
+                var path = target.attr(view.attributes.jsonPath);
+                
+                data = traverseJSON(data, path);
+                render(viewName, target, data);
             }
         };
         
@@ -541,6 +654,9 @@
         });
 	}
 
+    /**
+     * Extract file name (without file extension) from an URL.
+     */
     function extractNameFromUrl(url) {
         var idx = url.lastIndexOf("/");
 
@@ -563,12 +679,22 @@
 			var template = $(this).attr(view.attributes.binding);
 
 			if (!view.templates[template])
-                requireTemplate(template)
+                requireTemplate(template);
 			else
 				renderView();
 		});
 	}
 
+    /**
+     * Execute a callback function after ensuring that a template has been loaded.
+     * 
+     * @param template
+     *              Template that should be loaded.
+     * 
+     * @param callback
+     *              Callback function invoked after template loading or if it
+     *              is already loaded.
+     */
     function requireTemplate(template, callback) {
         if (!view.templates[template] && view.resources[template]) {
             console.log("Loading template " + template + " from " + view.resources[template] + ".");
@@ -637,11 +763,11 @@
             requireTemplate(template, function() {
 			    var content = templateEngine.render(template, data);
                 
-            	el.html(content);
-        		el.attr(view.attributes.lastRendering, new Date());
+                el.html(content);
+                el.attr(view.attributes.lastRendering, new Date());
         
-        		el.find("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(bindViewModel);
-        		el.find("[" + view.attributes.binding + "']:not([" + view.attributes.lastRendering + "])").each(renderView);
+                el.find("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(bindViewModel);
+                el.find("[" + view.attributes.binding + "']:not([" + view.attributes.lastRendering + "])").each(renderView);
             });
 		} catch (e) {
 			console.error("Error rendering data using template \"" + template + "\": " + e);
@@ -652,6 +778,8 @@
 
     /**
      * Render a view for a jQuery element.
+     * 
+     * [jQuery] This MUST be used on a wrapper.
      */
 	function renderView() {
         var el = $(this);
@@ -700,7 +828,7 @@
 			console.log("Rendering " + this + " using " + template + " and view-model " + viewModelInstance.instanceId);
             
             try {
-                var data = viewModelInstance.getRenderData(path);            			
+                var data = viewModelInstance.getRenderData(path);
                 render(template, $(this), traverseJSON(data, path));
             } catch (e) {
                 notifyError($(this), e);
@@ -710,6 +838,18 @@
 		}
 	}
     
+    /**
+     * Traverse JSON through a specified path.
+     * 
+     * @param data
+     *              JSON object that will be traversed.
+     * 
+     * @param path
+     *              Path to traverse.
+     * 
+     * @return
+     *              Reached object.
+     */
     function traverseJSON(data, path) {
         if (path) {
             path = path.split(".");
@@ -723,6 +863,8 @@
 
 	/**
 	 * Executes a command.
+     * 
+     * [jQuery] This MUST be used on a wrapper.
 	 */
 	function executeCommand(data) {
 		var command = $(this).attr(viewModel.attributes.command);
@@ -766,7 +908,7 @@
             return methods.init.apply( this, arguments );
 	    } else {
             $.error('Method ' +  method + ' does not exist on jQuery.crossview');
-    	}
+        }
 	};
 
     if (!$.fn.serializeObject) {
