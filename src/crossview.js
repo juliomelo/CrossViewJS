@@ -693,10 +693,7 @@
 		$("[" + view.attributes.binding + "]:not([" + view.attributes.lastRendering + "])").each(function() {
 			var template = $(this).attr(view.attributes.binding);
 
-			if (!view.templates[template])
-                requireTemplate(template);
-			else
-				renderView();
+            requireTemplate(template);
 		});
 	}
 
@@ -803,54 +800,53 @@
 		var jsonUrl = $(this).attr(view.attributes.jsonUrl);
 		var viewModelInstance = getViewModel($(this));
 
-        if (!view.templates[template] || view.templates[template].loading)
-            return;
-
-		var path = el.attr(view.attributes.jsonPath);
-
-		// Check if the view needs to fetch a JSON data.
-		if (jsonUrl) {
-
-			jsonUrl = getAbsoluteURL(jsonUrl);
-			console.log("Fetching JSON data from " + jsonUrl + ".");
-
-			el.addClass(view.css.fetching);
-
-			$.getJSON(jsonUrl).success(function(data) {
-                try {
-                    // Traverse JSON data path...
-                    data = traverseJSON(data, path);
+        requireTemplate(template, function() {
+            var path = el.attr(view.attributes.jsonPath);
     
-                    // Use a View-Model, if available.
-                    if (viewModelInstance && el.attr(view.attributes.withoutViewModel) != "true") {
-                        console.log("Rendering " + el + " using " + template + ".");
-                        viewModelInstance.setData(data);
-                        render(template, el, viewModelInstance.getRenderData());
-                    } else {
-                        console.log("Rendering " + el + " using " + template + " without a View-Model");
-                        render(template, el, data);
+            // Check if the view needs to fetch a JSON data.
+            if (jsonUrl) {
+    
+                jsonUrl = getAbsoluteURL(jsonUrl);
+                console.log("Fetching JSON data from " + jsonUrl + ".");
+    
+                el.addClass(view.css.fetching);
+    
+                $.getJSON(jsonUrl).success(function(data) {
+                    try {
+                        // Traverse JSON data path...
+                        data = traverseJSON(data, path);
+        
+                        // Use a View-Model, if available.
+                        if (viewModelInstance && el.attr(view.attributes.withoutViewModel) != "true") {
+                            console.log("Rendering " + el + " using " + template + ".");
+                            viewModelInstance.setData(data);
+                            render(template, el, viewModelInstance.getRenderData());
+                        } else {
+                            console.log("Rendering " + el + " using " + template + " without a View-Model");
+                            render(template, el, data);
+                        }
+                    } catch (e) {
+                        notifyError(el, e);
                     }
+                }).complete(function() {
+                    el.removeClass(view.css.fetching);
+                }).error(function(x, e) {
+                    notifyError(el, e);
+                });
+            } else if (viewModelInstance) {
+                // Do basic rendering.
+                console.log("Rendering " + el + " using " + template + " and view-model " + viewModelInstance.instanceId);
+                
+                try {
+                    var data = viewModelInstance.getRenderData(path);
+                    render(template, el, traverseJSON(data, path));
                 } catch (e) {
                     notifyError(el, e);
                 }
-			}).complete(function() {
-				el.removeClass(view.css.fetching);
-			}).error(function(x, e) {
-				notifyError(el, e);
-			});
-		} else if (viewModelInstance) {
-			// Do basic rendering.
-			console.log("Rendering " + this + " using " + template + " and view-model " + viewModelInstance.instanceId);
-            
-            try {
-                var data = viewModelInstance.getRenderData(path);
-                render(template, $(this), traverseJSON(data, path));
-            } catch (e) {
-                notifyError($(this), e);
+            } else if (!el.hasClass(view.css.loadingViewModel)) {
+                console.error("Can't render " + el + " because there is no view-model instanciated.");
             }
-		} else if (!el.hasClass(view.css.loadingViewModel)) {
-            console.error("Can't render " + this + " because there is no view-model instanciated.");
-		}
+        });
 	}
     
     /**
