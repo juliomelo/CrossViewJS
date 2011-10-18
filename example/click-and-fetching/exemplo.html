@@ -34,16 +34,10 @@
 		<hr>
 		<div id="proximaReuniaoPlenario">
 			<h3><span>Exemplo de JSON URL Fetching - Reunião de Plenário</span></h3>
-			<div data-json-url="http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20xml%20where%20url%3D%22http%3A%2F%2Fwww2.almg.gov.br%2Fws%2Fplenario%2Freunioes%2Fpesquisa%3Ford%3D0%22%20%20and%20itemPath%3D%22%2F%2FresultadoPesquisaReunioesPlenario%2FlistaReuniaoPlenario%2FreuniaoPlenario%22&format=json"
-				 data-json-path="query.results.reuniaoPlenario"
+			<div data-json-url="http://www2.almg.gov.br/ws/plenario/reunioes/pesquisa?ord=0"            
+				 data-json-path="resultadoPesquisaReunioesPlenario.listaReuniaoPlenario.reuniaoPlenario"
+                 data-fetch-mode="yql-xml"
 				 data-view="reuniaoPlenarioView">
-				 <!--
-				 	  Apenas para ficar mais clara a URL, estou usando o serviço YQL do Yahoo
-				      para realizar consulta JSON com suporte a Cross-Site:
-				      
-				      Parâmetro usado na querystring do YQL:
-				      select * from xml where url="http://www2.almg.gov.br/ws/plenario/reunioes/pesquisa?ord=0" and itemPath="//resultadoPesquisaReunioesPlenario/listaReuniaoPlenario/reuniaoPlenario"
-				   -->
 			</div>
 		</div>
 	</body>

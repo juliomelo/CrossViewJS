@@ -466,7 +466,7 @@
         
         var urlStrategy = {
             "yql-xml": function(url, options) {
-                if (options.data) {
+                if (options && options.data) {
                     var isFirst;
                     
                     if (url.indexOf("?") < 0) {
@@ -790,22 +790,28 @@
 	function renderView() {
         var el = $(this);
 
-		var template = $(this).attr(view.attributes.binding);
-		var jsonUrl = $(this).attr(view.attributes.jsonUrl);
-		var viewModelInstance = getViewModel($(this));
+		var template = el.attr(view.attributes.binding);
+		var jsonUrl = el.attr(view.attributes.jsonUrl);
+		var viewModelInstance = getViewModel(el);
 
         requireTemplate(template, function() {
             var path = el.attr(view.attributes.jsonPath);
     
             // Check if the view needs to fetch a JSON data.
             if (jsonUrl) {
+                var strategy = el.attr(view.attributes.fetchMode);
     
                 jsonUrl = getAbsoluteURL(jsonUrl);
                 console.log("Fetching JSON data from " + jsonUrl + ".");
     
                 el.addClass(view.css.fetching);
     
-                $.getJSON(jsonUrl).success(function(data) {
+                getJSON(jsonUrl, null, strategy).success(function(data) {
+                    if (!data) {
+                        notifyError(el, "No data received from " + jsonUrl);
+                        return;
+                    }
+                    
                     try {
                         // Traverse JSON data path...
                         data = traverseJSON(data, path);
