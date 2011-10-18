@@ -421,9 +421,18 @@
         
         var renderStrategies = {
             append : function(data) {
-                var viewName = form.attr(view.attributes.className);
+                var viewName = target.attr(view.attributes.binding);
+                var path = target.attr(view.attributes.jsonPath);
                 var html = $("<div/>");
                 
+                for (var attribute in view.attributes) {
+                    var value = target.attr(view.attributes[attribute]);
+                    
+                    if (value)
+                        html.attr(view.attributes[attribute], value);
+                }
+                
+                data = traverseJSON(data, path);
                 render(viewName, html, data);
                 
                 if (html.children().length > 1)
@@ -470,7 +479,16 @@
             requireTemplate(targetView, function() {
                 getJSON(action, { type : method, data : form.serializeObject() }, strategy)
                     .success(function(data) {
-                        renderStrategies[renderMode](data);
+                        try {
+                            var path = form.attr(view.attributes.jsonPath);
+                            
+                            if (path)
+                                data = traverseJSON(data, path);
+                                
+                            renderStrategies[renderMode](data);
+                        } catch (e) {
+                            notifyError(target, e);
+                        }
                     })
                     .complete(function() {
                         target.removeClass(view.css.fetching);
