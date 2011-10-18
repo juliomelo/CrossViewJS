@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+		<script type="text/javascript" src="http://borismoore.github.com/jsviews/jsrender.js"></script>
+		<script type="text/javascript" src="../../src/crossview.js"></script>
+        <link href="weather.html" rel="mvvm-view" type="text/html" />
+        <link href="../ajax.css" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        <form method="get" action="http://api.geonames.org/weatherJSON" data-view-render="view">
+            <input type="hidden" name="username" value="demo" />
+            <div class="item">
+                <label for="north">North:</label>
+                <input id="north" name="north" value="44.1" />
+            </div>
+            <div class="item">
+                <label for="south">South:</label>
+                <input id="south" name="south" value="-9.9" />
+            </div>
+            <div class="item">
+                <label for="east">East:</label>
+                <input id="east" name="east" value="-22.4" />
+            </div>
+            <div class="item">
+                <label for="west">West:</label>
+                <input id="west" name="west" value="55.2" />
+            </div>
+            <input type="submit" />
+        </form>
+        <div id="view" data-view="weather" data-json-path="weatherObservations">
+            Please, submit input data. The output will also appear here.
+        </div>
+    </body>
+</html>
