@@ -634,5 +634,3 @@
     }
 
 })(jQuery);
-
-var teste = true;
