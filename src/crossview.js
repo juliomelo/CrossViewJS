@@ -708,13 +708,13 @@
      *              is already loaded.
      */
     function requireTemplate(template, callback) {
-        if (!view.templates[template] && view.resources[template]) {
+        if ((!view.templates[template] || !view.templates[template].url) && view.resources[template]) {
             console.log("Loading template " + template + " from " + view.resources[template] + ".");
 
             view.templates[template] = {
                 url : view.resources[template],
                 loading : true,
-                callback : []
+                callback : view.templates[template] ? view.templates[template].callback || [] : []
             };
             
             if (callback)
@@ -724,7 +724,7 @@
                 url: getAbsoluteURL(view.resources[template]),
                 dataType: "text"
             }).success(function(data) {
-                console.log("Template " + template + " loaded from " + view.resources[template] + ".");
+                console.log("Template " + template + " loaded from " + view.resources[template] + ". (" + view.templates[template].callback.length + " callback(s) waiting)");
                 templateEngine.setTemplate(template, data);
                 view.templates[template].loading = false;
                 
@@ -746,6 +746,8 @@
                 view.templates[template].callback.push(callback);
             else 
                 callback();
+        } else if (callback) {
+            view.templates[template] = { callback : [ callback ] };
         }
     }
 
@@ -771,7 +773,7 @@
                 el.attr(view.attributes.lastRendering, new Date());
         
                 el.find("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(bindViewModel);
-                el.find("[" + view.attributes.binding + "']:not([" + view.attributes.lastRendering + "])").each(renderView);
+                el.find("[" + view.attributes.binding + "]:not([" + view.attributes.lastRendering + "])").each(renderView);
             });
 		} catch (e) {
 			console.error("Error rendering data using template \"" + template + "\": " + e);
@@ -885,16 +887,22 @@
 		else
 			console.error("Command not found: " + command + ".");
 	}
+    
+    function findAndRenderView() {
+        $("[" + view.attributes.jsonUrl + "]:not([" + view.attributes.lastRendering + "])").each(renderView);
+    }
 
 	$(autoRegister);
 	$(findAndBindViewModel);
 	$(bindCommands);
     $(bindFormRender);
-	$(loadTemplates);
+    $(findAndRenderView);
+//	$(loadTemplates);
 
 	$(window).ajaxComplete(function() {
 		$(findAndBindViewModel);
-		$(loadTemplates);
+        $(findAndRenderView);
+//		$(loadTemplates);
 	});
 
 	var methods = {
