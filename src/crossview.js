@@ -29,10 +29,10 @@
 
     if (!$) {
         throw "jQuery not found!";
-	}
+    }
 
-	// Identify and create a wrapper for template engine.
-	var templateEngine = null;
+    // Identify and create a wrapper for template engine.
+    var templateEngine = null;
 
     /**
      * Identifies loaded template engine and creates a wrapper for it.
@@ -177,7 +177,7 @@
              */
 			css : {
 				fetching : "mvvm-fetching",
-                loadingViewModel : "mvvm-fetching",
+                loadingViewModel : "mvvm-loading",
 				error : "mvvm-error"
 			},
             
@@ -194,7 +194,68 @@
                 className : "data-view-name",
                 render : "data-view-render",
                 renderMode : "data-view-render-mode"
-			}
+			},
+	        
+			/**
+			 * Render strategies definition.
+			 */
+	        renderStrategies : {
+	            /**
+	             * Appends rendered html to a target.
+	             */
+	            append : function(renderContext) {
+	                var path = renderContext.target.attr(view.attributes.jsonPath);
+	                var html = $("<div/>");
+	                
+	                for (var attribute in view.attributes) {
+	                    var value = renderContext.target.attr(view.attributes[attribute]);
+	                    
+	                    if (value)
+	                        html.attr(view.attributes[attribute], value);
+	                }
+	                
+	                var data = traverseJSON(renderContext.data, path);
+	                render(viewName, html, data);
+	                
+	                if (html.children().length > 1)
+	                	renderContext.target.append(html);
+	                else {
+	                    var child = html.children();
+	                    
+	                    child.attr(view.attributes.lastRendering, html.attr(view.attributes.lastRendering));
+	                    renderContext.target.append(html.children());
+	                    html.remove();
+	                }
+	            },
+	            
+	            /**
+	             * Sets data to the view-model and use it to render the target.
+	             * In this case, the data still stored on view-model instance
+	             * after the view is rendered.
+	             */
+	            "view-model" : function(renderContext) {
+	                var viewModelInstance;
+	            
+	                viewModelInstance = getViewModel(renderContext.target);
+	                    
+	                if (!viewModelInstance)
+	                    viewModelInstance = setViewModel(renderContext.target, "$formSubmission");
+
+	                viewModelInstance.setData(data);
+	                renderContext.target.each(renderView);
+	            },
+	            
+	            /**
+	             * Replaces the content of a view, rendering it directly using the
+	             * data.
+	             */
+	            replace : function(renderContext) {
+	                var path = renderContext.target.attr(view.attributes.jsonPath);
+	                
+	                var data = traverseJSON(renderContext.data, path);
+	                render(renderContext.viewName, renderContext.target, data);
+	            }
+	        }
 	};
 
     /**
@@ -225,6 +286,9 @@
 		el.addClass(viewModel.css.error);
 		el.attr(viewModel.attributes.error, exception);
 
+		if (!exception)
+			debugger;
+		
 		console.error(exception);
 	}
 
@@ -299,7 +363,7 @@
 			});
 
             // Since we have already instantiated the view-model, try to render its view.
-            $(function() { el.find("[" + view.attributes.binding + "]").each(renderView); });
+            $(function() { el.find("[" + view.attributes.binding + "]:not([" + view.attributes.withoutViewModel + "=true])").each(renderView); });
             
             return instance;
 		}
@@ -514,119 +578,64 @@
      * [jQuery] This MUST be used on a wrapper.
      */
     function renderFromFormSubmission() {
-        var form = $(this);
-        var targetId = form.attr(view.attributes.render);
-        var renderMode = form.attr(view.attributes.renderMode) || "replace";
-        var target = $("#" + targetId);
-        var strategy = form.attr(view.attributes.fetchMode);
+        var renderData = { form : $(this) };
         
-        if (!target.length) {
-            console.error("Target element not found: " + targetId + ".");
-            return false;
-        }
+        renderData.targetId = renderData.form.attr(view.attributes.render);
+        renderData.target = $("#" + renderData.targetId);
         
-        // Render strategies definition.
-        var renderStrategies = {
-            /**
-             * Appends rendered html to a target.
-             */
-            append : function(data) {
-                var viewName = target.attr(view.attributes.binding);
-                var path = target.attr(view.attributes.jsonPath);
-                var html = $("<div/>");
-                
-                for (var attribute in view.attributes) {
-                    var value = target.attr(view.attributes[attribute]);
-                    
-                    if (value)
-                        html.attr(view.attributes[attribute], value);
-                }
-                
-                data = traverseJSON(data, path);
-                render(viewName, html, data);
-                
-                if (html.children().length > 1)
-                    target.append(html);
-                else {
-                    var child = html.children();
-                    
-                    child.attr(view.attributes.lastRendering, html.attr(view.attributes.lastRendering));
-                    target.append(html.children());
-                    html.remove();
-                }
-            },
-            
-            /**
-             * Sets data to the view-model and use it to render the target.
-             * In this case, the data still stored on view-model instance
-             * after the view is rendered.
-             */
-            "view-model" : function(data) {
-                var viewModelInstance;
-            
-                viewModelInstance = getViewModel(target);
-                    
-                if (!viewModelInstance)
-                    viewModelInstance = setViewModel(target, "$formSubmission");
-
-                viewModelInstance.setData(data);
-                target.each(renderView);
-            },
-            
-            /**
-             * Replaces the content of a view, rendering it directly using the
-             * data.
-             */
-            replace : function(data) {
-                var viewName = target.attr(view.attributes.binding);
-                var path = target.attr(view.attributes.jsonPath);
-                
-                data = traverseJSON(data, path);
-                render(viewName, target, data);
-            }
-        };
-        
-        if (!renderStrategies[renderMode]) {
-            console.error("Unknown render mode: " + renderMode + ".");
+        if (!renderData.target.length) {
+            console.error("Target element not found: " + renderData.targetId + ".");
             return false;
         }
 
         try {
-            var action = form.attr("action");
-            var method = form.attr("method");
-            var targetView = target.attr(view.attributes.binding);
+            renderData.renderMode = renderData.form.attr(view.attributes.renderMode) || "replace";
+
+            if (!view.renderStrategies[renderData.renderMode]) {
+                console.error("Unknown render mode: " + renderData.renderMode + ".");
+                return false;
+            }
+
+            renderData.strategy = renderData.form.attr(view.attributes.fetchMode);
+            renderData.action = renderData.form.attr("action");
+            renderData.method = renderData.form.attr("method");
+            renderData.targetView = renderData.target.attr(view.attributes.binding) || renderData.form.attr(view.attributes.className);
             
-            if (!targetView) {
-                var error = 'Undefined view for target element "' + targetID + '".';
-                notifyError(target, error);
+            if (!renderData.targetView) {
+                var error = 'Undefined view for target element "' + renderData.targetId + '".';
+                notifyError(renderData.target, error);
                 return false;
             }
             
-            target.addClass(view.css.fetching);
+            renderData.target.addClass(view.css.fetching);
+            renderData.viewName = renderData.target.attr(view.attributes.binding) || renderData.form.attr(view.attributes.className);
+            renderData.jsonArgs = renderData.form.serializeObject();
                 
-            requireTemplate(targetView, function() {
-                getJSON(action, { type : method, data : form.serializeObject() }, strategy)
+            requireTemplate(renderData.targetView, function() {
+                getJSON(renderData.action, { type : renderData.method, data : renderData.jsonArgs }, renderData.strategy)
                     .success(function(data) {
                         try {
-                            var path = form.attr(view.attributes.jsonPath);
+                            var path = renderData.form.attr(view.attributes.jsonPath);
                             
                             if (path)
-                                data = traverseJSON(data, path);
+                            	renderData.data = traverseJSON(data, path);
+                            else
+                            	renderData.data = data;
                                 
-                            renderStrategies[renderMode](data);
+                            view.renderStrategies[renderData.renderMode].apply(renderData.form, [renderData]);
                         } catch (e) {
-                            notifyError(target, e);
+                            notifyError(renderData.target, e);
                         }
                     })
                     .complete(function() {
-                        target.removeClass(view.css.fetching);
+                    	renderData.target.removeClass(view.css.fetching);
                     })
                     .error(function(x, e) {
-                        notifyError(target, e);
+                        notifyError(renderData.target, e);
                     });
             });
         } catch (e) {
-            notifyError(target, e);
+            notifyError(renderData.target, e);
         } finally {
             return false;
         }            
@@ -646,13 +655,13 @@
 			$.getJSON(href).success(function(json) {
 				$.extend(viewModel.resources, json.viewModel);
 				$.extend(view.resources, json.view);
+                $(loadTemplates);
 			}).error(function(x, e) {
 				console.error("Failed to load View-Model class mapping from " + href + ".");
 				throw e;
 			}).complete(function() {
 				if (--loadingMapping === 0) {
 					$(findAndBindViewModel);
-					$(loadTemplates);
 				}
 			});
 		});
@@ -667,6 +676,8 @@
 			console.log("Registering template for view \"" + name + "\" on " + href + ".");
             view.resources[name] = href;
         });
+        
+        $(loadTemplates);
 	}
 
     /**
@@ -725,7 +736,15 @@
                 dataType: "text"
             }).success(function(data) {
                 console.log("Template " + template + " loaded from " + view.resources[template] + ". (" + view.templates[template].callback.length + " callback(s) waiting)");
-                templateEngine.setTemplate(template, data);
+                
+                try {
+                	templateEngine.setTemplate(template, data);
+                } catch (e) {
+                	notifyError($("[" + view.attributes.binding + "='" + template + "']"), "Can't compile template " + template + ": " + e + "\n" + data);
+                	view.templates[template] = null;
+                	return;
+            	}
+                
                 view.templates[template].loading = false;
                 
                 // Invoke callbacks.
@@ -747,6 +766,11 @@
             else 
                 callback();
         } else if (callback) {
+        	if (template == null) {
+        		throw "Template undefined!";
+        	}
+        	
+            console.log("Needing template " + template + ". Waiting for registration.");
             view.templates[template] = { callback : [ callback ] };
         }
     }
@@ -789,14 +813,20 @@
      */
 	function renderView() {
         var el = $(this);
-
+        
 		var template = el.attr(view.attributes.binding);
-		var jsonUrl = el.attr(view.attributes.jsonUrl);
-		var viewModelInstance = getViewModel(el);
-
+		
         requireTemplate(template, function() {
+        	
+        	if (el.hasClass(view.css.loadingViewModel)) {
+        		console.log("Waiting view-model finish loading to render view " + el.attr("id") + ".");
+        		return;
+        	}
+        	
+    		var jsonUrl = el.attr(view.attributes.jsonUrl);
             var path = el.attr(view.attributes.jsonPath);
-    
+    		var viewModelInstance = getViewModel(el);
+    		
             // Check if the view needs to fetch a JSON data.
             if (jsonUrl) {
                 var strategy = el.attr(view.attributes.fetchMode);
@@ -808,9 +838,11 @@
     
                 getJSON(jsonUrl, null, strategy).success(function(data) {
                     if (!data) {
-                        notifyError(el, "No data received from " + jsonUrl);
+                        notifyError(el, "No data received from " + jsonUrl + ".");
                         return;
                     }
+                    
+                    console.log("Fechted JSON data from " + jsonUrl + ".");
                     
                     try {
                         // Traverse JSON data path...
@@ -831,7 +863,7 @@
                 }).complete(function() {
                     el.removeClass(view.css.fetching);
                 }).error(function(x, e) {
-                    notifyError(el, e);
+                    notifyError(el, "Cannot get JSON from " + jsonUrl + ": " + e || x);
                 });
             } else if (viewModelInstance) {
                 // Do basic rendering.
@@ -895,7 +927,7 @@
 	}
     
     function findAndRenderView() {
-        $("[" + view.attributes.jsonUrl + "]:not([" + view.attributes.lastRendering + "])").each(renderView);
+        $("[" + view.attributes.jsonUrl + "]:not([" + view.attributes.lastRendering + "]):not(." + view.css.fetching + ")").each(renderView);
     }
 
 	$(autoRegister);
@@ -903,19 +935,45 @@
 	$(bindCommands);
     $(bindFormRender);
     $(findAndRenderView);
-//	$(loadTemplates);
 
 	$(window).ajaxComplete(function() {
 		$(findAndBindViewModel);
         $(findAndRenderView);
-//		$(loadTemplates);
 	});
 
 	var methods = {
 		init : function(options) {
 			if (options.relativePath)
 				setRelativePath(options.relativePath);
-		}
+		},
+		
+		registerRenderMode : function(name, callback) {
+			view.renderStrategies[name] = callback;
+		},
+        
+		/**
+		 * Render a view from a data or from its view-model.
+		 *  
+		 * @param data
+		 * 				Data to render (optional).
+		 * 
+		 * @param template
+		 * 				View name (optional).
+		 */
+        render : function(data, template) {
+            try {
+                if (data) {
+                	if (!template)
+                		template = $(this).attr(view.attributes.binding);
+                	
+                    render(template, $(this), data);
+                } else {
+                    renderView.apply(this);
+                }
+            } catch (e) {
+                notifyError($(this), e);
+            }
+        }
 	};
 
 	$.crossview = $.fn.crossview = function(method) {
