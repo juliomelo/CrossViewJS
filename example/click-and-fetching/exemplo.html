@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>jPresenter - Model, View, View-Model</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+		<script type="text/javascript" src="http://borismoore.github.com/jsviews/jsrender.js"></script>
+		<script type="text/javascript" src="../../src/crossview.js"></script>
+ 		<link href="mapping.json" rel="mvvm-mapping" type="application/json" />
+ 		<link href="exemplo.css" rel="stylesheet" type="text/css" />
+	</head>
+	<body>
+		<!-- Exemplo de um contexto de apresentação usando um view-model -->
+		<div data-viewmodel="testeVM">
+			<h3>Exemplo de um View-Model</h3>
+			
+			<!-- Área reservada para renderização da view -->
+			<div data-view="testeView"></div>
+			
+			<!-- Botão que executa o comando testar -->
+			<button data-command="testar">Primeiro teste</button>
+		</div>
+		
+		
+		<!-- Exemplo de um outro contexto de apresentação usando o mesmo view-model -->
+		<div data-viewmodel="testeVM">
+			<h3>Exemplo de um mesmo View-Model, porém em contexto separado</h3>
+			<div data-view="testeView"></div>
+			<button data-command="testar">Segundo teste</button>
+		</div>
+		
+				
+		<!-- Exemplo de renderização por meio de URL Fetching (sem view-model, apesar de que também é suportado) -->
+		<hr>
+		<div id="proximaReuniaoPlenario">
+			<h3><span>Exemplo de JSON URL Fetching - Reunião de Plenário</span></h3>
+			<div data-json-url="http://www2.almg.gov.br/ws/plenario/reunioes/pesquisa?ord=0"            
+				 data-json-path="resultadoPesquisaReunioesPlenario.listaReuniaoPlenario.reuniaoPlenario"
+                 data-fetch-mode="yql-xml"
+				 data-view="reuniaoPlenarioView">
+			</div>
+		</div>
+	</body>
+</html>

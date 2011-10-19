@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+		<script type="text/javascript" src="http://borismoore.github.com/jsviews/jsrender.js"></script>
+		<script type="text/javascript" src="../../src/crossview.js"></script>
+        <link href="proposicaoView.html" rel="mvvm-view" type="text/html" />
+        <link href="../ajax.css" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+        <form method="get"
+              action="http://www2.almg.gov.br/ws/proposicoes/pesquisa/direta"
+              data-view-render="resultado"
+              data-fetch-mode="yql-xml"
+              data-view-render-mode="replace">
+            <div class="item">
+                <label for="tipo">Tipo de proposição:</label>
+                <input id="tipo" name="tipo" value="PL" />
+            </div>
+            <div class="item">
+                <label for="numero">Número:</label>
+                <input id="numero" name="num" />
+            </div>
+            <div class="item">
+                <label for="ano">Ano:</label>
+                <input id="ano" name="ano" value="2011" />
+            </div>
+            <input type="submit" />
+            <input type="reset" />
+        </form>
+        <div id="resultado" data-view="proposicaoView" data-json-path="resultadoPesquisa.lista.projetoTramitacao">
+            <!-- Os dados da(s) proposição(ões) irão aparecer aqui. -->
+        </div>
+    </body>
+</html>

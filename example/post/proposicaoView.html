@@ -1,0 +1,19 @@
+<div class="proposicao">
+    <h3>
+        {{=proposicao}}
+        {{#if assuntoGeral}}
+            - {{=assuntoGeral}}
+        {{/if}}
+    </h3>
+    <div class="autoria">
+        <span class="rotulo">Autor</span>
+        <span class="valor">{{=autor}}</span>
+    </div>
+    <div class="ementa">{{=ementa}}</div>
+    {{#if observacao}}
+        <div class="observacao">{{=observacao}}</div>
+    {{/if}}
+    {{#if situacao}}
+        <div class="situacao">{{=situacao}}</div>
+    {{/if}}
+</div>
