@@ -1,9 +1,9 @@
 function teste() {
 	return {
-		cliques : 0,
+		clicks : 0,
 		
-		testar : function() { 
-			this.cliques++;
+		test : function() { 
+			this.clicks++;
 			this.updateView();
 		}
 	};

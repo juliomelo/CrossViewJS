@@ -1,6 +1,6 @@
 <span class="numero">{{=cliques}}</span>
 {{#if cliques &lt; 1}}
-	cliques foram recebidos.
+	clicks.
 {{else}}
-	clique foi recebido.
+	click.
 {{/if}}

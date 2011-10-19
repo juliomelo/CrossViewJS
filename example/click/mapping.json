@@ -1,0 +1,10 @@
+{
+	"viewModel" : {
+		"clickViewModel" : "clickViewModel.js"
+	},
+	
+	"view" : {
+		"clickView" : "clickView.html",
+		"reuniaoPlenarioView" : "reuniaoPlenarioView.html"
+	}
+}
