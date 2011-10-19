@@ -1,8 +1,0 @@
-<div class="tweet">
-	<div class="createdAt">{{=created_at}}</div>
-	<div class="user">
-		<img src="{{=profile_image_url}}" alt="{{=from_user}} profile image" />
-		<span class="name">{{=from_user}}</span>
-	</div>
-	<p>{{=text}}</p>
-</div>
