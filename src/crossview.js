@@ -363,7 +363,7 @@
 			});
 
             // Since we have already instantiated the view-model, try to render its view.
-            $(function() { el.find("[" + view.attributes.binding + "]:not([" + view.attributes.withoutViewModel + "=true])").each(renderView); });
+            $(function() { el.find("[" + view.attributes.binding + "]:not([" + view.attributes.withoutViewModel + "=true])").removeClass(view.css.loadingViewModel).each(renderView); });
             
             return instance;
 		}
@@ -434,6 +434,8 @@
 	function findAndBindViewModel() {
         viewModel.binding = true;
 
+		console.log("Finding view-model to bind...");
+
 		try {
 			$("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(bindViewModel);
 		} finally {
@@ -447,6 +449,7 @@
      * [jQuery] This MUST be used on a wrapper.
      */
 	function bindViewModel() {
+
 		try {
 			var name = $(this).attr(viewModel.attributes.binding);
 
@@ -525,11 +528,13 @@
         var jsonStrategy = {
             "yql-xml" : function(data) {
                 return data.query.results;
-            }
+            }, "yql" : function(data) {
+		return data.query.results.json;
+	    }
         };
         
         var urlStrategy = {
-            "yql-xml": function(url, options) {
+            "yql-xml" : function(url, options) {
                 if (options && options.data) {
                     var isFirst;
                     
@@ -554,7 +559,33 @@
                 
                 return "http://query.yahooapis.com/v1/public/yql?format=json&q=select%20*%20from%20xml%20where%20url%3D%22" +
                     encodeURIComponent(url) + "%22";
-            }
+            },
+	    "yql" : function(url, options) {
+                if (options && options.data) {
+                    var isFirst;
+                    
+                    if (url.indexOf("?") < 0) {
+                        url += "?";
+                        isFirst = true;
+                    }
+                        
+                    for (var item in options.data) {
+                        if (options.data[item]) {
+                            if (isFirst)
+                                isFirst = false;
+                            else
+                                url += "&";
+                                
+                            url += encodeURIComponent(item) + "=" + encodeURIComponent(options.data[item]);
+                        }
+                    }    
+                    
+                    options.data = null;
+                }
+                
+                return "http://query.yahooapis.com/v1/public/yql?format=json&q=select%20*%20from%20json%20where%20url%3D%22" +
+                    encodeURIComponent(url) + "%22";
+	    }
         };
         
         if (urlStrategy[strategy])
@@ -661,7 +692,7 @@
 				throw e;
 			}).complete(function() {
 				if (--loadingMapping === 0) {
-					$(findAndBindViewModel);
+					requestBinding();
 				}
 			});
 		});
@@ -931,13 +962,12 @@
     }
 
 	$(autoRegister);
-	$(findAndBindViewModel);
 	$(bindCommands);
     $(bindFormRender);
     $(findAndRenderView);
 
 	$(window).ajaxComplete(function() {
-		$(findAndBindViewModel);
+		$(requestBinding);
         $(findAndRenderView);
 	});
 
