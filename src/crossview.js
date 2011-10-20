@@ -490,16 +490,18 @@
                 $(this).find("[" + view.attributes.binding + "]").addClass(view.css.loadingViewModel);
 
                 var that = $(this);
+                
+                var ajaxOptions = $.extend(null, config.ajaxDefautls, {
+                	dataType : "script"
+                });
 
-                $.ajax(getAbsoluteURL(viewModel.resources[name]), config.ajaxDefautls).success(function(data) {
-                    var processedData = null;
-
-                    /* Since data is a function (yes... javascript function code),
-                     * use eval.
-                     */
-                    eval("processedData = " + data + ";");
-
-                    registerViewModel(name, processedData);
+                $.ajax(getAbsoluteURL(viewModel.resources[name]), ajaxOptions).success(function(data) {
+                	var classDefinition = traverseJSON(window, name);
+                	
+                	if (!classDefinition || classDefinition === window)
+                	    throw "Undefined class " + name + ", even after having loaded " + viewModel.resources[name];
+                	
+                    registerViewModel(name, classDefinition);
                 }).error(function(x, e) {
                     viewModel.resources[name] = null;
                     console.error("Error loading javascript for View-Model \"" + name + "\" from " + getAbsoluteURL(viewModel.resources[name]) + ": " + e + ".");
