@@ -107,6 +107,7 @@
                 },
                 
                 updateView : function() {
+                    this.container.find("[" + view.attributes.binding + "]").empty();
                     this.container.find("[" + view.attributes.binding + "]").each(renderView);
 				},
 
@@ -270,7 +271,10 @@
      * User configuration.
      */
 	var config = {
-			relativePath : null
+			relativePath : null,
+			ajaxDefautls : {
+				cache : false
+			}
 	};
 
     /**
@@ -336,7 +340,7 @@
 		if (!viewModel.classes[name])
 			notifyError(el, "View-Model class not found: " + name + ".");
 		else {
-			console.log("Binding " + name + " to " + el);
+			console.log("Binding " + name + " to " + el.attr("id"));
 
 			var instance = new viewModel.classes[name]();
             var instanceId = ++viewModel.bindidSeq;
@@ -363,7 +367,10 @@
 			});
 
             // Since we have already instantiated the view-model, try to render its view.
-            $(function() { el.find("[" + view.attributes.binding + "]:not([" + view.attributes.withoutViewModel + "=true])").removeClass(view.css.loadingViewModel).each(renderView); });
+            var views = el.find("[" + view.attributes.binding + "]:not([" + view.attributes.withoutViewModel + "=true])");
+            
+            console.log(views.length + " found. Rendering...");
+            views.removeClass(view.css.loadingViewModel).each(renderView);
             
             return instance;
 		}
@@ -401,6 +408,32 @@
 
 		return id ? viewModel.instances[id] : null;
 	}
+	
+	/**
+	 * Checks if an element should have an associated view-model,
+	 * but it have not been loaded yet.
+	 */
+	function shouldHaveViewModel(el) {
+		var id = el.attr(viewModel.attributes.bindId);
+		var found = false;
+
+		if (!id && !el.attr(viewModel.attributes.binding)) {
+			for (var parent = el.parent(); !id && parent.length; parent = parent.parent()) {
+				id = parent.attr(viewModel.attributes.bindId);
+
+				if (parent.attr(viewModel.attributes.binding)) {
+					found = true;
+					break;
+				}
+			}
+
+			if (id)
+				el.attr(viewModel.attributes.bindId, id);
+		} else
+			found = true;
+
+		return found && !id;
+	}
 
     /**
      * Gets the overriden view-model, which is a view-model instance of
@@ -424,22 +457,14 @@
 	function requestBinding() {
 		if (!viewModel.binding) {
 			viewModel.binding = true;
-			$(findAndBindViewModel);
-		}
-	}
-
-	/**
-     * Binds DOM elements to View-Models.
-	 */
-	function findAndBindViewModel() {
-        viewModel.binding = true;
-
-		console.log("Finding view-model to bind...");
-
-		try {
-			$("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(bindViewModel);
-		} finally {
-			viewModel.binding = false;
+	
+			console.log("Finding view-model to bind...");
+	
+			try {
+				$("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(bindViewModel);
+			} finally {
+				viewModel.binding = false;
+			}
 		}
 	}
 
@@ -449,11 +474,15 @@
      * [jQuery] This MUST be used on a wrapper.
      */
 	function bindViewModel() {
+		
+		if ($(this).hasClass(viewModel.attributes.bindId))
+			return;
 
 		try {
 			var name = $(this).attr(viewModel.attributes.binding);
 
 			if (viewModel.classes[name]) {
+				console.log("Binding View-Model \"" + name + "\" to " + $(this).attr("id"));
 				setViewModel($(this), name);
 			} else if (viewModel.resources[name]) {
 				console.log("Loading javascript for View-Model \"" + name + "\" from " + getAbsoluteURL(viewModel.resources[name]) + ".");
@@ -462,7 +491,7 @@
 
 				var that = $(this);
 
-				$.get(getAbsoluteURL(viewModel.resources[name])).success(function(data) {
+				$.ajax(getAbsoluteURL(viewModel.resources[name]), config.ajaxDefautls).success(function(data) {
 					var processedData = null;
 
                     /* Since data is a function (yes... javascript function code),
@@ -475,7 +504,10 @@
                     viewModel.resources[name] = null;
 					console.error("Error loading javascript for View-Model \"" + name + "\" from " + getAbsoluteURL(viewModel.resources[name]) + ": " + e + ".");
 				}).complete(function() {
-                    that.find("." + view.css.loadingViewModel).removeClass(view.css.loadingViewModel);
+                    that.find("." + view.css.loadingViewModel).each(function () {
+                    	if (!shouldHaveViewModel($(this)))
+                    		$(this).removeClass(view.css.loadingViewModel);
+                    });
                 });
 			} else if (loadingMapping === 0) {
 				notifyError($(this), "View-Model class \"" + name + "\" not found!");
@@ -491,7 +523,8 @@
 	function bindCommands() {
 		$("a[" + viewModel.attributes.command + "]").live("click", executeCommand);
 		$("button[" + viewModel.attributes.command + "]").live("click", executeCommand);
-		$("form[" + viewModel.attributes.command + "]").live("submit", executeCommand);
+		$("form[" + viewModel.attributes.command + "]:not([action])").live("submit", executeCommand);
+		$("form[" + viewModel.attributes.command + "][action]").live("submit", executeCommandFromFormSubmission);
 	}
 
     /**
@@ -512,6 +545,8 @@
         if (!strategy)
             strategy = "default";
         
+        options = $.extend(null, config.ajaxDefautls, options);
+        
         var run = {
             complete : function(callback) {
                 completeCallback = callback;
@@ -529,8 +564,8 @@
             "yql-xml" : function(data) {
                 return data.query.results;
             }, "yql" : function(data) {
-		return data.query.results.json;
-	    }
+            	return data.query.results.json;
+            }
         };
         
         var urlStrategy = {
@@ -585,7 +620,7 @@
                 
                 return "http://query.yahooapis.com/v1/public/yql?format=json&q=select%20*%20from%20json%20where%20url%3D%22" +
                     encodeURIComponent(url) + "%22";
-	    }
+	    	}
         };
         
         if (urlStrategy[strategy])
@@ -603,6 +638,24 @@
         return run;
     }
 
+    function executeCommandFromFormSubmission() {
+    	try {
+	    	var form = $(this);
+	    	var action = form.attr("action");
+	    	var method = form.attr("method");
+	        var jsonArgs = form.serializeObject();
+	                    
+	        $.ajax(getAbsoluteURL(action), { type : method, data : jsonArgs })
+	            .success(function(data) {
+	            	executeCommand.apply(form);
+	            });
+    	} catch (e) {
+    		notifyError($(this), e)
+    	} finally {
+    		return false;
+    	}
+    }
+    
     /**
      * Submit a form and render its result to a specific view.
      * 
@@ -762,13 +815,12 @@
             if (callback)
                 view.templates[template].callback.push(callback);
 
-            $.ajax({
-                url: getAbsoluteURL(view.resources[template]),
-                dataType: "text"
-            }).success(function(data) {
-                console.log("Template " + template + " loaded from " + view.resources[template] + ". (" + view.templates[template].callback.length + " callback(s) waiting)");
-                
+            var options = $.extend(null, config.ajaxDefautls, { dataType : "text" });
+            
+            $.ajax(getAbsoluteURL(view.resources[template]), options).success(function(data) {
                 try {
+                	console.log("Template " + template + " loaded from " + view.resources[template] + ". (" + view.templates[template].callback.length + " callback(s) waiting)");
+                
                 	templateEngine.setTemplate(template, data);
                 } catch (e) {
                 	notifyError($("[" + view.attributes.binding + "='" + template + "']"), "Can't compile template " + template + ": " + e + "\n" + data);
@@ -849,7 +901,7 @@
 		
         requireTemplate(template, function() {
         	
-        	if (el.hasClass(view.css.loadingViewModel)) {
+        	if (shouldHaveViewModel(el)) {
         		console.log("Waiting view-model finish loading to render view " + el.attr("id") + ".");
         		return;
         	}
@@ -860,6 +912,11 @@
     		
             // Check if the view needs to fetch a JSON data.
             if (jsonUrl) {
+            	if (el.hasClass(view.css.fetching)) {
+            		console.log("Ignoring render view " + el.attr("id") + ", since it is already fetching data.");
+            		return;
+            	}
+            	
                 var strategy = el.attr(view.attributes.fetchMode);
     
                 jsonUrl = getAbsoluteURL(jsonUrl);
@@ -881,11 +938,11 @@
         
                         // Use a View-Model, if available.
                         if (viewModelInstance && el.attr(view.attributes.withoutViewModel) != "true") {
-                            console.log("Rendering " + el + " using " + template + ".");
+                            console.log("Rendering " + el.attr("id") + " using " + template + " and its view-model " + viewModelInstance.instanceId + ".");
                             viewModelInstance.setData(data);
                             render(template, el, viewModelInstance.getRenderData());
                         } else {
-                            console.log("Rendering " + el + " using " + template + " without a View-Model");
+                            console.log("Rendering " + el.attr("id") + " using " + template + " without a View-Model");
                             render(template, el, data);
                         }
                     } catch (e) {
@@ -898,16 +955,18 @@
                 });
             } else if (viewModelInstance) {
                 // Do basic rendering.
-                console.log("Rendering " + el + " using " + template + " and view-model " + viewModelInstance.instanceId);
+                console.log("Rendering " + el.attr("id") + " using " + template + " and view-model " + viewModelInstance.instanceId);
                 
                 try {
-                    var data = viewModelInstance.getRenderData(path);
-                    render(template, el, traverseJSON(data, path));
+                    // TODO: CHECK
+                	//var data = viewModelInstance.getRenderData(path);
+                    //render(template, el, traverseJSON(data, path));
+                	render(template, el, viewModelInstance.getRenderData());
                 } catch (e) {
                     notifyError(el, e);
                 }
             } else if (!el.hasClass(view.css.loadingViewModel)) {
-                console.error("Can't render " + el + " because there is no view-model instanciated.");
+                console.error("Can't render " + el.attr("id") + " because there is no view-model instanciated.");
             }
         });
 	}
@@ -963,8 +1022,8 @@
 
 	$(autoRegister);
 	$(bindCommands);
-    $(bindFormRender);
-    $(findAndRenderView);
+	$(bindFormRender);
+	$(findAndRenderView);
 
 	$(window).ajaxComplete(function() {
 		$(requestBinding);
@@ -1008,12 +1067,12 @@
 
 	$.crossview = $.fn.crossview = function(method) {
 	    if (methods[method]) {
-            return methods[method].apply( this, Array.prototype.slice.call(arguments, 1));
+            	return methods[method].apply( this, Array.prototype.slice.call(arguments, 1));
 	    } else if (typeof method === 'object' || ! method) {
-            return methods.init.apply( this, arguments );
+            	return methods.init.apply( this, arguments );
 	    } else {
-            $.error('Method ' +  method + ' does not exist on jQuery.crossview');
-        }
+        	    $.error('Method ' +  method + ' does not exist on jQuery.crossview');
+            }
 	};
 
     if (!$.fn.serializeObject) {
