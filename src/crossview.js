@@ -573,11 +573,10 @@
         var urlStrategy = {
             "yql-xml" : function(url, options) {
                 if (options && options.data) {
-                    var isFirst;
+                    var isFirst = true;
                     
                     if (url.indexOf("?") < 0) {
                         url += "?";
-                        isFirst = true;
                     }
                         
                     for (var item in options.data) {
@@ -599,11 +598,10 @@
             },
         "yql" : function(url, options) {
                 if (options && options.data) {
-                    var isFirst;
+                    var isFirst = true;
                     
                     if (url.indexOf("?") < 0) {
                         url += "?";
-                        isFirst = true;
                     }
                         
                     for (var item in options.data) {
@@ -652,10 +650,10 @@
                     executeCommand.apply(form);
                 });
         } catch (e) {
-            notifyError($(this), e)
-        } finally {
-            return false;
+            notifyError($(this), e);
         }
+        
+        return false;
     }
     
     /**
@@ -722,9 +720,9 @@
             });
         } catch (e) {
             notifyError(renderData.target, e);
-        } finally {
-            return false;
-        }            
+        }
+
+        return false;
     }
 
     /**
