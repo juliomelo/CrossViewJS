@@ -366,11 +366,15 @@
                 }
             });
 
-            // Since we have already instantiated the view-model, try to render its view.
-            var views = el.find("[" + view.attributes.binding + "]:not([" + view.attributes.withoutViewModel + "=true])");
-            
-            console.log(views.length + " found. Rendering...");
-            views.removeClass(view.css.loadingViewModel).each(renderView);
+            if (el.attr(view.attributes.binding)) {
+                el.each(renderView);
+            } else {
+	            // Since we have already instantiated the view-model, try to render its view.
+	            var views = el.find("[" + view.attributes.binding + "]:not([" + view.attributes.withoutViewModel + "=true])");
+	            
+	            console.log(views.length + " found. Rendering...");
+	            views.removeClass(view.css.loadingViewModel).each(renderView);
+            }
             
             return instance;
         }
@@ -647,7 +651,7 @@
                         
             $.ajax(getAbsoluteURL(action), { type : method, data : jsonArgs })
                 .success(function(data) {
-                    executeCommand.apply(form);
+                    executeCommand.apply(this, arguments);
                 });
         } catch (e) {
             notifyError($(this), e);
@@ -881,6 +885,8 @@
         
                 el.find("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(bindViewModel);
                 el.find("[" + view.attributes.binding + "]:not([" + view.attributes.lastRendering + "])").each(renderView);
+                
+                el.trigger("crossview-rendered");
             });
         } catch (e) {
             console.error("Error rendering data using template \"" + template + "\": " + e);
@@ -999,7 +1005,7 @@
      * 
      * [jQuery] This MUST be used on a wrapper.
      */
-    function executeCommand(data) {
+    function executeCommand() {
         var command = $(this).attr(viewModel.attributes.command);
         var instance = getViewModel($(this));
 
@@ -1009,7 +1015,7 @@
             instance = getAncestorViewModel(instance);
 
         if (instance) {
-            instance[command](this, data);
+            instance[command].apply(this, arguments);
             return false;
         }
         else
