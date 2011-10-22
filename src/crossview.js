@@ -1,7 +1,9 @@
 /**
- * A MVVM library.
+ * CrossViewJS
  *
- * @author Júlio César e Melo
+ * A presentation library that facilitates view integration with RESTful
+ * services, considering a Model View View-Model (MVVM) approach.
+ *
  *
  * The MIT License (MIT)
  *
@@ -885,7 +887,13 @@
         
                 el.find("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(bindViewModel);
                 el.find("[" + view.attributes.binding + "]:not([" + view.attributes.lastRendering + "])").each(renderView);
-                
+
+		/* Triggers pagecreate event if jQuery Mobile is present,
+		 * so it can bind those rendered elements.
+		 */
+		if ($.mobile)
+			el.trigger("pagecreate"); // Should trigger "create" also?
+
                 el.trigger("crossview-rendered");
             });
         } catch (e) {
