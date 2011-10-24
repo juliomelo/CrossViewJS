@@ -2,7 +2,7 @@ DATE = $(shell date "+%Y%m%d")
 VER = $(shell cat version.txt)
 NAME = crossview-$(VER)
 
-JS_FILES=src/crossview.js
+JS_FILES=src/crossview.core.js
 
 TARGET=target
 TARGET_JS_MIN=$(TARGET)/$(NAME).min.js
