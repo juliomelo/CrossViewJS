@@ -296,6 +296,9 @@
             debugger;
         
         console.error(exception);
+
+        if (exception.stack)
+        	console.error(exception.stack);
     }
 
     /**
@@ -888,13 +891,28 @@
                 el.find("[" + viewModel.attributes.binding + "]:not([" + viewModel.attributes.bindId + "])").each(bindViewModel);
                 el.find("[" + view.attributes.binding + "]:not([" + view.attributes.lastRendering + "])").each(renderView);
 
-		/* Triggers pagecreate event if jQuery Mobile is present,
-		 * so it can bind those rendered elements.
-		 */
-		if ($.mobile)
-			el.trigger("pagecreate"); // Should trigger "create" also?
+                try {
+                	el.trigger("crossview-rendered");
+                } catch (e) {
+                	console.error('Error invoking "crossview-rendered" event for ' + el.attr("id") + ": " + e + ".");
+                	notifyError(el, e);
+                }
 
-                el.trigger("crossview-rendered");
+                /* Triggers pagecreate event if jQuery Mobile is present,
+                 * so it can bind those rendered elements.
+                 */
+                if ($.mobile) {
+                	try {
+                		var page = $($.mobile.activePage);
+                		
+                		if (page.get(0) === el.get(0) || page.has(el)) {
+                			console.log("Invoking jQuery Mobile bindings on " + el.attr("id") + ".");
+                			el.trigger("pagecreate");
+                		}
+                	} catch (e) {
+                		console.log("Error invoking pagecreate for $.mobile: " + e + ".");
+                	}
+                }
             });
         } catch (e) {
             console.error("Error rendering data using template \"" + template + "\": " + e);
