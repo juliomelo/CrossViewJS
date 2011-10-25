@@ -1,32 +1,4 @@
-/**
  * CrossViewJS
- *
- * A presentation library that facilitates view integration with RESTful
- * services, considering a Model View View-Model (MVVM) approach.
- *
- *
- * The MIT License (MIT)
- *
- * Copyright (c) 2011 Júlio César e Melo
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
 (function($) {
 
     if (!$) {
@@ -109,8 +81,13 @@
                 },
                 
                 updateView : function() {
-                    this.container.find("[" + view.attributes.binding + "]").empty();
-                    this.container.find("[" + view.attributes.binding + "]").each(renderView);
+                	if (this.container.attr(view.attributes.binding)) {
+                		this.container.empty();
+                		this.container.each(renderView);
+                	} else {
+                		this.container.find("[" + view.attributes.binding + "]").empty();
+                		this.container.find("[" + view.attributes.binding + "]").each(renderView);
+                	}
                 },
 
                 setData : function(data) {
@@ -350,14 +327,16 @@
             var instance = new viewModel.classes[name]();
             var instanceId = ++viewModel.bindidSeq;
 
-            // Instantiate a view-model class, specializing our portotype.
-            instance = $.extend(null,
-                viewModel.instancePrototype,
-                {
-                    instanceId : instanceId,
-                    container : el
-                }, instance);
+            // Instantiate a view-model class, specializing our prototype.
+            for (var method in viewModel.instancePrototype)
+            	if (!instance[method])
+            		instance[method] = viewModel.instancePrototype[method];
 
+            $.extend(instance, {
+            	instanceId : instanceId,
+                container : el
+            });
+            
             viewModel.instances[instanceId] = instance;
             el.attr(viewModel.attributes.bindId, instanceId);
 
@@ -534,8 +513,8 @@
     function bindCommands() {
         $("a[" + viewModel.attributes.command + "]").live("click", executeCommand);
         $("button[" + viewModel.attributes.command + "]").live("click", executeCommand);
-        $("form[" + viewModel.attributes.command + "]:not([action])").live("submit", executeCommand);
-        $("form[" + viewModel.attributes.command + "][action]").live("submit", executeCommandFromFormSubmission);
+        $("form[" + viewModel.attributes.command + "][" + view.attributes.render + "]").live("submit", executeCommand);
+        $("form[" + viewModel.attributes.command + "][action]:not([" + view.attributes.render + "])").live("submit", executeCommandFromFormSubmission);
     }
 
     /**
@@ -635,6 +614,8 @@
         if (urlStrategy[strategy])
             url = urlStrategy[strategy](url, options);
         
+        url = getAbsoluteURL(url);
+        
         $.ajax(url, options)
             .complete(function() { if (completeCallback) completeCallback(arguments); })
             .error(function() { if (errorCallback) errorCallback(arguments); })
@@ -656,7 +637,7 @@
                         
             $.ajax(getAbsoluteURL(action), { type : method, data : jsonArgs })
                 .success(function(data) {
-                    executeCommand.apply(this, arguments);
+                    executeCommand.apply(form, arguments);
                 });
         } catch (e) {
             notifyError($(this), e);
@@ -664,7 +645,7 @@
         
         return false;
     }
-    
+
     /**
      * Submit a form and render its result to a specific view.
      * 
@@ -714,7 +695,9 @@
                                 renderData.data = traverseJSON(data, path);
                             else
                                 renderData.data = data;
-                                
+
+                            console.log("Rendering " + renderData.targetId + " from form " + renderData.form.attr("id") + " submission.");
+                            
                             view.renderStrategies[renderData.renderMode].apply(renderData.form, [renderData]);
                         } catch (e) {
                             notifyError(renderData.target, e);
@@ -1041,7 +1024,13 @@
             instance = getAncestorViewModel(instance);
 
         if (instance) {
-            instance[command].apply(this, arguments);
+        	var args = [$(this)];
+        	
+        	for (var i = 0; i < arguments.length; i++)
+        		args.push(arguments[i]);
+        	
+            instance[command].apply(instance, args);
+            
             return false;
         }
         else
@@ -1094,6 +1083,10 @@
             } catch (e) {
                 notifyError($(this), e);
             }
+        },
+        
+        setViewModelData : function(data) {
+        	getViewModel($(this)).setData(data);
         }
     };
 
