@@ -68,7 +68,7 @@
                 }
                 
                 var data = CrossViewJS.traverseJSON(renderContext.data, path);
-                html.crossview("render", data, viewName);
+                html.crossview("render", data, renderContext.viewName);
                 
                 if (html.children().length > 1)
                     renderContext.target.append(html);

@@ -10,7 +10,9 @@ JS_FILES=src/crossview.core.js src/crossview.mapping.js src/crossview.view.js sr
 TARGET=target
 TARGET_JS_MIN=$(TARGET)/$(NAME).min.js
 TARGET_JS=$(TARGET)/$(NAME).js
-TESTS=test/viewModel/testCommandAndUpdate.py test/view/testRenderFormSubmission.py
+TESTS=test/viewModel/testCommandAndUpdate.py \
+      test/view/testRenderFormSubmission.py \
+      test/view/testRenderAppendFormSubmission.py
 
 all: test minimify
 
@@ -29,11 +31,12 @@ js: init $(JS_FILES)
 	rm -f $(TARGET)/crossview.js
 	ln $(NAME).js -s $(TARGET)/crossview.js
 		
-test/%: test/% js
+test/%: js
+	@@echo Executing test $*
 	@@python test/$*; \
 	if [ $$? -ne 0 ]; \
 	then \
-		echo "Teste falhou!"; \
+		echo "Test failed!"; \
 		exit 1; \
 	fi
 

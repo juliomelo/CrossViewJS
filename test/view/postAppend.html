@@ -15,16 +15,17 @@
 		<!-- A form whose submission trigger rendering of #twitter -->
         <form method="get"
               action="http://search.twitter.com/search.json"
+	          data-json-path="results"
               data-fetch-mode="yql"
               data-form-render="twitter"
-              data-form-render-mode="replace">
+              data-form-render-mode="append">
             <div class="item">
                 <label for="query">Query:</label>
                 <input id="query" name="q" value="javascript mvvm" />
             </div>
-	    <input type="hidden" name="rpp" value="5" />
-	    <input type="hidden" name="include_entities" value="true" />
-	    <input type="hidden" name="with_twitter_user_id" value="true" />
+	    <input type="hidden" name="rpp" value="1" />
+	    <input type="hidden" name="include_entities" value="false" />
+	    <input type="hidden" name="with_twitter_user_id" value="false" />
 	    <input type="hidden" name="result_type" value="recent" />
             <div class="item">
                 <label for="language">Language:</label>
@@ -36,12 +37,8 @@
 
 		<!-- Twitter view which is renderd on page load and also after form submission (se form attributes) -->
         <div id="twitter"
-	         data-json-url="http://search.twitter.com/search.json?q=javascript+mvvm&rpp=5&include_entities=true&with_twitter_user_id=true&result_type=mixed"            
-	         data-json-path="results"
-	         data-fetch-mode="yql"
 	         data-view="twitterView">
 	        <!-- Twitter data will come here -->
-		Loading twitter data...
         </div>
     </body>
 </html>
