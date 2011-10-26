@@ -205,6 +205,7 @@
             // Check if the view needs to fetch a JSON data.
             if (jsonUrl) {
                 if (el.hasClass(CrossViewJS.options.css.view.fetching)) {
+                    debugger;
                     console.log("Ignoring render view " + el.attr("id") + ", since it is already fetching data.");
                     return;
                 }
@@ -222,7 +223,7 @@
                         return;
                     }
                     
-                    console.log("Fechted JSON data from " + jsonUrl + ".");
+                    console.log("Fetched JSON data from " + jsonUrl + ".");
                     
                     try {
                         // Traverse JSON data path...

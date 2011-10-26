@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+		<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+		<script type="text/javascript" src="../../target/crossview.js"></script>
+		<link href="clickView.html" rel="crossview-view" type="text/html" />
+	</head>
+	<body>
+		<script type="text/javascript">
+			function clickViewModel() {
+			    this.clicks = 0;
+			    console.log("View-Model created!");
+			}
+	
+			clickViewModel.prototype.test = function() {
+			    this.clicks++;
+			    
+			    if (this.clicks % 2 == 0)
+			    	this.updateView();
+			};
+		</script>
+			
+		<!-- Example of a presentation context using a view-model-->
+		<div data-viewmodel="clickViewModel" id="test1">
+			<h3>View-Model Example</h3>
+			
+			<!-- Reserved area for rendering -->
+			<div data-view="clickView" id="testView1"></div>
+			
+			<!-- Button to execute a command defined on view-model code -->
+			<button data-command="test">First test</button>
+		</div>
+		
+		
+		<!-- Example of another context, but using the same view-model class -->
+		<div data-viewmodel="clickViewModel" id="test2">
+			<h3>Same View-Model, but another context</h3>
+			<div data-view="clickView" id="testView2"></div>
+			<button data-command="test">Second test</button>
+		</div>
+	</body>
+</html>

@@ -38,8 +38,8 @@
     function bindCommands() {
         $("a[" + CrossViewJS.options.attributes.command + "]").live("click", executeCommand);
         $("button[" + CrossViewJS.options.attributes.command + "]").live("click", executeCommand);
-        $("form[" + CrossViewJS.options.attributes.command + "]:not([" + view.attributes.render + "])").live("submit", executeCommand);
-        $("form[" + CrossViewJS.options.attributes.command + "][" + view.attributes.render + "]").live("submit", executeCommandFromFormSubmission);
+        $("form[" + CrossViewJS.options.attributes.command + "]:not([" + CrossViewJS.options.attributes.form.render + "])").live("submit", executeCommand);
+        $("form[" + CrossViewJS.options.attributes.command + "][" + CrossViewJS.options.attributes.form.render + "]").live("submit", executeCommandFromFormSubmission);
     }
     
     function executeCommandFromFormSubmission() {

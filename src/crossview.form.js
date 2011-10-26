@@ -162,15 +162,14 @@
                             else
                                 renderData.data = data;
                                 
+                            renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
                             renderModes[renderData.renderMode].apply(renderData.form, [renderData]);
                         } catch (e) {
                             CrossViewJS.notifyError(renderData.target, e);
                         }
                     })
-                    .complete(function() {
-                        renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
-                    })
                     .error(function(x, e) {
+                        renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
                         CrossViewJS.notifyError(renderData.target, e);
                     });
             });

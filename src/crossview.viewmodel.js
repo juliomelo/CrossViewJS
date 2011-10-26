@@ -307,6 +307,14 @@
                     });
                 });
             } else if (CrossViewJS.loadingMapping === 0) {
+                var htmlClass = CrossViewJS.traverseJSON(window, name);
+                
+                if (htmlClass && htmlClass !== window) {
+                    registerViewModel(name, htmlClass);
+                    bindViewModel.apply(this, arguments);
+                    return;
+                }
+                
                 throw "View-Model class \"" + name + "\" not found!";
             }
         } catch (e) {
@@ -328,5 +336,7 @@
             requestBinding : requestBinding
         }
     });
+    
+    $(requestBinding);
 
 })(jQuery, jQuery.crossview);

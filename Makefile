@@ -10,8 +10,9 @@ JS_FILES=src/crossview.core.js src/crossview.mapping.js src/crossview.view.js sr
 TARGET=target
 TARGET_JS_MIN=$(TARGET)/$(NAME).min.js
 TARGET_JS=$(TARGET)/$(NAME).js
+TESTS=test/viewModel/testCommandAndUpdate.py test/view/testRenderFormSubmission.py
 
-all: minimify
+all: test minimify
 
 clean:
 	rm -rf $(TARGET)
@@ -23,5 +24,18 @@ minimify: js
 	curl --data-urlencode js_code@$(TARGET_JS) -d compilation_level=SIMPLE_OPTIMIZATIONS -d output_info=compiled_code -d output_format=text -o $(TARGET_JS_MIN) http://closure-compiler.appspot.com/compile
 
 js: init $(JS_FILES)
-	cat $(JS_FILES) >> $(TARGET_JS)
+	cat $(JS_FILES) > $(TARGET_JS)
 	find $(TARGET) -type f -name '*.js' -exec sed -i -e 's|@VERSION|$(VER)|g' {} \;
+	rm -f $(TARGET)/crossview.js
+	ln $(NAME).js -s $(TARGET)/crossview.js
+		
+test/%: test/% js
+	@@python test/$*; \
+	if [ $$? -ne 0 ]; \
+	then \
+		echo "Teste falhou!"; \
+		exit 1; \
+	fi
+
+test: $(TESTS)
+
