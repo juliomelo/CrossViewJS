@@ -135,13 +135,15 @@
             var instanceId = ++viewModel.bindidSeq;
 
             // Instantiate a view-model class, specializing our portotype.
-            instance = $.extend(null,
-                viewModel.instancePrototype,
-                {
-                    instanceId : instanceId,
-                    container : el
-                }, instance);
-
+            for (var method in viewModel.instancePrototype)
+                if (!instance[method])
+                    instance[method] = viewModel.instancePrototype[method];
+           
+           $.extend(instance, {
+              instanceId : instanceId,
+                container : el
+            });
+                   
             viewModel.instances[instanceId] = instance;
             el.attr(CrossViewJS.options.attributes.viewModel.bindId, instanceId);
 
@@ -315,7 +317,10 @@
     $.extend(CrossViewJS.fn, {
         shouldHaveViewModel : function() { shouldHaveViewModel(this); },
         getViewModel : function() { return getViewModel(this); },
-        bindViewModel : function() { this.each(bindViewModel) }
+        bindViewModel : function() { this.each(bindViewModel); },
+        setViewModelData : function(data) {
+            this.each(function() { getViewModel($(this)).setData(data); });
+        }
     });
     
     $.extend(true, CrossViewJS, {

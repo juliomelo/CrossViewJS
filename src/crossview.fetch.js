@@ -46,7 +46,7 @@
             url = el.attr(CrossViewJS.options.attributes.fetch.jsonUrl);
         
         return CrossViewJS.getJSON(url, options, mode);
-    }
+    };
     
     /**
      * Gets a JSON from an URL using an conversion strategy (i.e. YQL).

@@ -38,8 +38,8 @@
     function bindCommands() {
         $("a[" + CrossViewJS.options.attributes.command + "]").live("click", executeCommand);
         $("button[" + CrossViewJS.options.attributes.command + "]").live("click", executeCommand);
-        $("form[" + CrossViewJS.options.attributes.command + "]:not([action])").live("submit", executeCommand);
-        $("form[" + CrossViewJS.options.attributes.command + "][action]").live("submit", executeCommandFromFormSubmission);
+        $("form[" + CrossViewJS.options.attributes.command + "]:not([" + view.attributes.render + "])").live("submit", executeCommand);
+        $("form[" + CrossViewJS.options.attributes.command + "][" + view.attributes.render + "]").live("submit", executeCommandFromFormSubmission);
     }
     
     function executeCommandFromFormSubmission() {
@@ -49,9 +49,9 @@
             var method = form.attr("method");
             var jsonArgs = form.serializeObject();
                         
-            form.crossview("getJSON", action, { type : method, data : jsonArgs })
+            CrossViewJS.getJSON(action, { type : method, data : jsonArgs })
                 .success(function(data) {
-                    executeCommand.apply(this, arguments);
+                    executeCommand.apply(form, arguments);
                 });
         } catch (e) {
             CrossViewJS.notifyError($(this), e);
@@ -76,10 +76,15 @@
             instance = instance.getAncestorViewModel();
 
         if (instance) {
-            instance[command].apply(instance, arguments);
+            var args = [$(this)];
+               
+            for (var i = 0; i < arguments.length; i++)
+                args.push(arguments[i]);
+                 
+            instance[command].apply(instance, args);
+            
             return false;
-        }
-        else
+        } else
             console.error("Command not found: " + command + ".");
     }
 
