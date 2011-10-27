@@ -48,10 +48,21 @@
             var action = form.attr("action");
             var method = form.attr("method");
             var jsonArgs = form.serializeObject();
-                        
+            var container;
+            
+            if (form.attr(view.attributes.binding))
+                container = form;
+            else
+                container = form.parents("[" + view.attributes.binding + "]:first");
+            
+            container.addClass(view.css.fetching);
+            
             CrossViewJS.getJSON(action, { type : method, data : jsonArgs })
                 .success(function(data) {
+                    container.removeClass(view.css.fetching);
                     executeCommand.apply(form, arguments);
+                }).error(function() {
+                    container.removeClass(view.css.fetching);
                 });
         } catch (e) {
             CrossViewJS.notifyError($(this), e);

@@ -61,7 +61,11 @@
                 },
                 
                 updateView : function() {
-                    this.container.find("[" + CrossViewJS.options.attributes.view.binding + "]").empty().crossview("render");
+                    if (this.container.attr(CrossViewJS.options.attributes.view.binding)) {
+                        this.container.empty().each(renderView);
+                    } else {
+                        this.container.find("[" + CrossViewJS.options.attributes.view.binding + "]").empty().crossview("render");
+                    }
                 },
 
                 setData : function(data) {

@@ -167,6 +167,6 @@
             });
         
         return run;
-    }
+    };
 
 })(jQuery);
