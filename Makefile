@@ -13,7 +13,8 @@ TARGET_JS=$(TARGET)/$(NAME).js
 TESTS=test/viewModel/testCommandAndUpdate.py \
       test/view/testRenderFormSubmission.py \
       test/view/testRenderAppendFormSubmission.py \
-      test/view/testMultipleViews.py
+      test/view/testMultipleViews.py \
+      test/view/testAssertCss.py
 
 all: test minimify
 

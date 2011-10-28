@@ -121,7 +121,7 @@
              */
             var newArgs = [$(this)];
             
-            for (var i = 0; i < args.length; i++)
+            for (var i = 0; i < arguments.length; i++)
                 newArgs.push(arguments[i]);
             
             return instance[command].apply(instance, newArgs);

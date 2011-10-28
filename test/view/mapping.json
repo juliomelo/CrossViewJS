@@ -1,0 +1,7 @@
+{
+    "view" : {
+        "twitterView" : "twitterView.html",
+        "twitterResultInfoView" : "twitterResultInfoView.html",
+        "twitterPicturesView" : "twitterPicturesView.html"
+    }
+}
