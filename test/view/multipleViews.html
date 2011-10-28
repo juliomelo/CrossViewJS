@@ -10,29 +10,27 @@
 
 		<!-- Simple MVVM mapping -->
         <link href="twitterView.html" rel="crossview-view" type="text/html" />
+        <link href="twitterResultInfoView.html" rel="crossview-view" type="text/html" />
+        <link href="twitterPicturesView.html" rel="crossview-view" type="text/html" />
     </head>
     <body>
-        <h1>Post, but append</h1>
-        <p>
-            This tests form submission that renders a view, but, instead of replacing its content,
-            CrossView will append elements.
-        </p>
+        <h1>Multiple Views</h1>
+        <p>This tests multiple view rendering from a single form submission.</p>
         <hr/>
 		<!-- A form whose submission trigger rendering of #twitter -->
         <form method="get"
               action="http://search.twitter.com/search.json"
-	          data-json-path="results"
               data-fetch-mode="yql"
-              data-form-render="twitter"
-              data-form-render-mode="append">
+              data-form-render="twitter,resultInfo,pictures"
+              data-form-render-mode="replace">
             <div class="item">
                 <label for="query">Query:</label>
                 <input id="query" name="q" value="javascript mvvm" />
             </div>
-	    <input type="hidden" name="rpp" value="1" />
-	    <input type="hidden" name="include_entities" value="false" />
-	    <input type="hidden" name="with_twitter_user_id" value="false" />
-	    <input type="hidden" name="result_type" value="recent" />
+		    <input type="hidden" name="rpp" value="5" />
+		    <input type="hidden" name="include_entities" value="true" />
+		    <input type="hidden" name="with_twitter_user_id" value="true" />
+		    <input type="hidden" name="result_type" value="recent" />
             <div class="item">
                 <label for="language">Language:</label>
                 <input id="language" name="lang" />
@@ -41,10 +39,19 @@
             <input type="reset" />
         </form>
 
-		<!-- Twitter view which is renderd on page load and also after form submission (se form attributes) -->
+        <!-- This test with a specific json path -->
+        <div id="pictures" data-view="twitterPicturesView" data-json-path="results"></div>
+
+        <!-- This test without json path -->
+        <div id="resultInfo" data-view="twitterResultInfoView"></div>
+
+        <!-- This is a more complex view -->
         <div id="twitter"
+	         data-json-path="results"
 	         data-view="twitterView">
 	        <!-- Twitter data will come here -->
+    		Please, submit form.
         </div>
+        
     </body>
 </html>

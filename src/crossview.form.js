@@ -68,7 +68,7 @@
                 }
                 
                 var data = CrossViewJS.traverseJSON(renderContext.data, path);
-                html.crossview("render", data, renderContext.viewName);
+                html.crossview("render", data, renderContext.targetView);
                 
                 if (html.children().length > 1)
                     renderContext.target.append(html);
@@ -90,7 +90,7 @@
                 var path = renderContext.target.attr(CrossViewJS.options.attributes.fetch.jsonPath);
         
                 var data = CrossViewJS.traverseJSON(renderContext.data, path);
-                renderContext.target.crossview("render", data, renderContext.viewName);
+                renderContext.target.crossview("render", data, renderContext.targetView);
             });
     
     /**
@@ -108,73 +108,101 @@
                     viewModelInstance = setViewModel(renderContext.target, "$formSubmission");
             
                 viewModelInstance.setData(data);
-                renderContext.target.each(renderView);
+                renderContext.target.crossview("render");
             });
 
     /**
      * Submit a form and render its result to a specific view.
      * 
      * [jQuery] This MUST be used on a wrapper.
+     * 
+     * @return Event should propagate.
      */
     function renderFromFormSubmission() {
-        var renderData = { form : $(this) };
+        var form = $(this);
         
-        renderData.targetId = renderData.form.attr(CrossViewJS.options.attributes.form.render);
-        renderData.target = $("#" + renderData.targetId);
+        // Split targets and identify views for rendering.
+        var targetsIds = form.attr(CrossViewJS.options.attributes.form.render).split(",");
+        var targets = [];
         
-        if (!renderData.target.length) {
-            CrossViewJS.notifyError(renderData.form, "Target element not found: " + renderData.targetId + ".");
-            debugger;
-            return false;
+        for (var i = 0; i < targetsIds.length; i++) {
+            targets[i] = {
+                    id : targetsIds[i],
+                    el : $("#" + $.trim(targetsIds[i]))
+            };
+            targets[i].view = form.attr(CrossViewJS.options.attributes.view.className) || targets[i].el.attr(CrossViewJS.options.attributes.view.binding); 
+
+            if (!targets[i].el.length) {
+                CrossViewJS.notifyError(form, "Target element not found: " + targetsIds[i] + ".");
+                return false;
+            }
+            
+            if (!targets[i].view) {
+                var error = 'Undefined view for target element "' + targetsIds[i] + '".';
+                CrossViewJS.notifyError(targets[i].el, error);
+                return false;
+            }
+            
+            CrossViewJS.requireTemplate(targets[i].view);
         }
-
+        
+        // Do rendering.
         try {
-            renderData.renderMode = renderData.form.attr(CrossViewJS.options.attributes.form.renderMode) || CrossViewJS.options.form.defaultRenderMode;
-
-            if (!renderModes[renderData.renderMode]) {
-                CrossViewJS.notifyError(renderData.target, "Unknown render mode: " + renderData.renderMode + ".");
-                return false;
-            }
-
-            renderData.strategy = renderData.form.attr(CrossViewJS.options.attributes.fetch.fetchMode);
-            renderData.action = renderData.form.attr("action");
-            renderData.method = renderData.form.attr("method");
-            renderData.targetView = renderData.target.attr(CrossViewJS.options.attributes.view.binding) || renderData.form.attr(CrossViewJS.options.attributes.view.className);
+            var fetchMode = form.attr(CrossViewJS.options.attributes.fetch.fetchMode);            
+            var action = form.attr("action");
+            var method = form.attr("method");
+            var jsonArgs = form.serializeObject();
+            var renderMode = form.attr(CrossViewJS.options.attributes.form.renderMode);
             
-            if (!renderData.targetView) {
-                var error = 'Undefined view for target element "' + renderData.targetId + '".';
-                CrossViewJS.notifyError(renderData.target, error);
+            if (!renderModes[renderMode]) {
+                CrossViewJS.notifyError(form, "Unknown render mode: " + renderMode + ".");
                 return false;
             }
             
-            renderData.target.addClass(CrossViewJS.options.css.view.fetching);
-            renderData.viewName = renderData.target.attr(CrossViewJS.options.attributes.view.binding) || renderData.form.attr(CrossViewJS.options.attributes.view.className);
-            renderData.jsonArgs = renderData.form.serializeObject();
+            $(targets).each(function() { this.el.addClass(CrossViewJS.options.css.view.fetching); });
                 
-            CrossViewJS.requireTemplate(renderData.targetView, function() {
-                CrossViewJS.getJSON(renderData.action, { type : renderData.method, data : renderData.jsonArgs }, renderData.strategy)
-                    .success(function(data) {
-                        try {
-                            var path = renderData.form.attr(CrossViewJS.options.attributes.fetch.jsonPath);
-                            
-                            if (path)
-                                renderData.data = CrossViewJS.traverseJSON(data, path);
-                            else
-                                renderData.data = data;
-                                
-                            renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
-                            renderModes[renderData.renderMode].apply(renderData.form, [renderData]);
-                        } catch (e) {
-                            CrossViewJS.notifyError(renderData.target, e);
-                        }
-                    })
-                    .error(function(x, e) {
+            CrossViewJS.getJSON(action, { type : method, data : jsonArgs }, fetchMode)
+                .success(function(data) {
+                    try {
+                        var path = form.attr(CrossViewJS.options.attributes.fetch.jsonPath);
+
+                        if (path)
+                            data = CrossViewJS.traverseJSON(data, path);
+
+                        $(targets).each(function() {
+                            try {
+                                var renderData = {
+                                        form : form,
+                                        target : this.el,
+                                        targetId : this.id,
+                                        targetView : this.view,
+                                        jsonArgs : jsonArgs,
+                                        data : data
+                                };
+        
+                                CrossViewJS.requireTemplate(this.view, function() {
+                                    renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
+                                    renderModes[renderMode].apply(form, [renderData]);
+                                });
+                            } catch (e) {
+                                $(targets).each(function() {
+                                    renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
+                                    CrossViewJS.notifyError(this.el, e);
+                                });
+                            }
+                        });
+                    } catch (e) {
+                        $(targets).each(function() { CrossViewJS.notifyError(this.el, e); });
+                    }
+                })
+                .error(function(x, e) {
+                    $(targets).each(function() {
                         renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
-                        CrossViewJS.notifyError(renderData.target, e);
+                        CrossViewJS.notifyError(this.el, e);
                     });
-            });
+                });
         } catch (e) {
-            CrossViewJS.notifyError(renderData.target, e);
+            $(targets).each(function() { CrossViewJS.notifyError(this.el, e); });
         }
 
         return false;

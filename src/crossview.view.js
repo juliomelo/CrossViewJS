@@ -35,9 +35,9 @@
                  */
                 css : {
                     view : {
-                        fetching : "mvvm-fetching",
-                        loadingViewModel : "mvvm-loading",
-                        error : "mvvm-error"
+                        fetching : "crossview-fetching",
+                        loadingViewModel : "crossview-loading",
+                        error : "crossview-error"
                     }
                 },
         
