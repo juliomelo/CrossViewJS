@@ -230,13 +230,13 @@
                         data = CrossViewJS.traverseJSON(data, path);
         
                         // Use a View-Model, if available.
-                        if (viewModelInstance && el.attr(CrossViewJS.options.attributes.view.withoutViewModel) != "true") {
+                        if (!viewModelInstance || el.attr(CrossViewJS.options.attributes.view.withoutViewModel) == "true") {
+                            console.log("Rendering " + el.attr("id") + " using " + template + " without a View-Model");
+                            render(template, el, data);
+                        } else {
                             console.log("Rendering " + el.attr("id") + " using " + template + " and its view-model " + viewModelInstance.instanceId + ".");
                             viewModelInstance.setData(data);
                             render(template, el, viewModelInstance.getRenderData());
-                        } else {
-                            console.log("Rendering " + el.attr("id") + " using " + template + " without a View-Model");
-                            render(template, el, data);
                         }
                     } catch (e) {
                         CrossViewJS.notifyError(el, e);

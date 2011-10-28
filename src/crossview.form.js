@@ -78,7 +78,7 @@
             var action = form.attr("action");
             var method = form.attr("method");
             var jsonArgs = form.serializeObject();
-            var renderMode = form.attr(CrossViewJS.options.attributes.form.renderMode);
+            var renderMode = form.attr(CrossViewJS.options.attributes.form.renderMode) || "replace";
             
             if (render && !renderModes[renderMode]) {
                 CrossViewJS.notifyError(form, "Unknown render mode: " + renderMode + ".");
@@ -108,15 +108,28 @@
                         try {
                             if (render)
                                 $(targets).each(function() {
-                                    try {
+                                    try {                                        
                                         var renderData = {
                                                 form : form,
                                                 target : this.el,
                                                 targetId : this.id,
                                                 targetView : this.view,
-                                                jsonArgs : jsonArgs,
-                                                data : data
+                                                jsonArgs : jsonArgs 
                                         };
+                                        
+                                        if (this.el.attr(CrossViewJS.options.attributes.view.withoutViewModel) == "true")
+                                            renderData.data = data;
+                                        else {
+                                            var modelView = this.el.crossview("getViewModel");
+                                            
+                                            if (modelView) {
+                                                if (modelView.getData() != data)
+                                                    modelView.setData(data);
+                                            
+                                                renderData.data = modelView.getRenderData();
+                                            } else // No model-view, so...
+                                                renderData.data = data;
+                                        }
                 
                                         CrossViewJS.requireTemplate(this.view, function() {
                                             renderData.target.removeClass(CrossViewJS.options.css.view.fetching);

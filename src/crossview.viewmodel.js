@@ -73,7 +73,7 @@
                 },
 
                 getRenderData : function() {
-                    return this;
+                    return this.data;
                 },
 
                 getData : function(attribute) {

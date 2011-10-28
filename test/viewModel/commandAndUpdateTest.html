@@ -9,14 +9,14 @@
 	<body>
 		<script type="text/javascript">
 			function clickViewModel() {
-			    this.clicks = 0;
+			    this.data = { clicks : 0 };
 			    console.log("View-Model created!");
 			}
 	
 			clickViewModel.prototype.test = function() {
-			    this.clicks++;
+			    this.data.clicks++;
 			    
-			    if (this.clicks % 2 == 0)
+			    if (this.data.clicks % 2 == 0)
 			    	this.updateView();
 			};
 		</script>

@@ -15,7 +15,8 @@ TESTS=test/viewModel/testCommandAndUpdate.py \
       test/view/testRenderAppendFormSubmission.py \
       test/view/testMultipleViews.py \
       test/view/testAssertCss.py \
-      test/viewModel/formViewModel.py
+      test/viewModel/testFormViewModel.py \
+      test/view/testFormViewAndViewModel.py
 
 all: test minimify
 

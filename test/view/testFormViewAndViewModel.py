@@ -3,27 +3,29 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 import unittest, time, re, os
 
-class TestMultipleViews(unittest.TestCase):
+class TestFormViewModel(unittest.TestCase):
     def setUp(self):
         self.driver = webdriver.Firefox()
-        self.driver.implicitly_wait(30)
+        self.driver.implicitly_wait(0)
         self.base_url = "http://juliomelo.github.com/"
         self.verificationErrors = []
     
-    def test_multiple_views(self):
+    def test_form_view_model(self):
         driver = self.driver
-        driver.get("file:///" + os.path.dirname(os.getcwd() + "/" +  __file__) + "/multipleViews.html")
-        driver.find_element_by_id("query").clear()
-        driver.find_element_by_id("query").send_keys("world")
-        driver.find_element_by_css_selector("input[type=\"submit\"]").click()
-        for i in range(60):
+        driver.get("file:///" + os.path.dirname(os.getcwd() + "/" +  __file__) + "/formViewAndViewModel.html")
+        for i in range(10):
             try:
-                if self.is_element_present(By.XPATH, "//div[@id='resultInfo']/div/span[3]"): break
+                if self.is_element_present(By.CSS_SELECTOR, ".crossview-fetching"): break
             except: pass
             time.sleep(1)
         else: self.fail("time out")
-        self.assertEqual("world", driver.find_element_by_xpath("//div[@id='resultInfo']/div/span[2]").text)
-        self.assertTrue(self.is_element_present(By.CSS_SELECTOR, "img"))
+        for i in range(10):
+            try:
+                if not self.is_element_present(By.CSS_SELECTOR, ".crossview-fetching"): break
+            except: pass
+            time.sleep(1)
+        else: self.fail("time out")
+        self.assertEqual("Test passed", driver.find_element_by_id("result").text)
         for i in range(60):
             try:
                 if self.is_element_present(By.CSS_SELECTOR, ".tweet"): break

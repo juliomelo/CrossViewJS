@@ -26,7 +26,7 @@ class TestFormViewModel(unittest.TestCase):
             time.sleep(1)
         else: self.fail("time out")
         self.assertEqual("Test passed", driver.find_element_by_id("result").text)
-    
+
     def is_element_present(self, how, what):
         try: self.driver.find_element(by=how, value=what)
         except NoSuchElementException, e: return False
