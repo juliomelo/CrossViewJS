@@ -21,7 +21,7 @@ class TestRenderFormSubmission(unittest.TestCase):
         else: self.fail("time out")
         self.assertEqual(5, len(driver.find_elements_by_css_selector(".tweet")))
         driver.find_element_by_id("query").clear()
-        driver.find_element_by_id("query").send_keys("unit test")
+        driver.find_element_by_id("query").send_keys("world")
         driver.execute_script("$('.tweet').remove();");
         driver.find_element_by_css_selector("input[type=\"submit\"]").click()
         for i in range(60):
@@ -30,8 +30,7 @@ class TestRenderFormSubmission(unittest.TestCase):
             except: pass
             time.sleep(1)
         else: self.fail("time out")
-        if len(driver.find_elements_by_xpath("//p[contains(., 'unit')]")) == 0: self.fail("Text not found")
-        if len(driver.find_elements_by_xpath("//p[contains(., 'test')]")) == 0: self.fail("Text not found")
+        if len(driver.find_elements_by_xpath("//p[contains(., 'world')]")) == 0: self.fail("Text not found")
     
     def is_element_present(self, how, what):
         try: self.driver.find_element(by=how, value=what)

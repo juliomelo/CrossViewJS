@@ -22,7 +22,7 @@ class TestRenderFormSubmission(unittest.TestCase):
         else: self.fail("time out")
         self.assertEqual(1, len(driver.find_elements_by_css_selector(".tweet")))
         driver.find_element_by_id("query").clear()
-        driver.find_element_by_id("query").send_keys("unit test")
+        driver.find_element_by_id("query").send_keys("world")
         driver.find_element_by_css_selector("input[type=\"submit\"]").click()
         for i in range(10):
             try:
