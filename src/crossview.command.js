@@ -57,8 +57,9 @@
         
         if (command || render) {
             CrossViewJS.form.submit(form, function(data) {
+
                 if (command)
-                    invokeCommand(form, command, data);
+                    invokeCommand(form, command, [ data ]);
 
                 // NOTE: Render is already handled by form submission.
             });
@@ -119,10 +120,11 @@
             /* Don't use args.unshift here, because "arguments" keyword
              * used to call this method doesn't have this method.
              */
-            var newArgs = [$(this)];
+            var newArgs = [el];
             
-            for (var i = 0; i < arguments.length; i++)
-                newArgs.push(arguments[i]);
+            if (args)
+                for (var i = 0; i < args.length; i++)
+                    newArgs.push(args[i]);
             
             return instance[command].apply(instance, newArgs);
         } else {

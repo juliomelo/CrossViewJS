@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
+        <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+        <script type="text/javascript" src="../../target/crossview.js"></script>
+        <link href="../test.css" rel="stylesheet" type="text/css" />
+    </head>
+    <body data-viewModel="TestViewModel">
+        <script type="text/javascript">
+            function TestViewModel() {
+                console.log("View-Model created!");
+                this.id = "Test View Model";
+            }
+            
+            function assert(condition, message) {
+                if (!condition)
+                    $("<li/>").text(message).appendTo("#result ul");
+            }
+    
+            TestViewModel.prototype.test = function(el, data) {                
+                assert(this.id == "Test View Model", '"this" does not points to view-model: ' + this);
+                assert(el.attr("id") == "testForm", "Wrong first argument - should be jQuery element wrapper.");
+                assert(data, "There is no data.");
+                assert(data.query, "Unexpected data.");
+                
+                if (!$("#result ul").children().length)
+                    $("#result").text("Test passed").addClass("success");
+            };
+        </script>
+
+        <h1>View-Model Test</h1>
+        <p>
+            This tests a form submission using view-model command.
+        </p>
+        <hr/>
+
+        <form method="get"
+              action="http://search.twitter.com/search.json"
+              data-fetch-mode="yql"
+              data-command="test"
+              id="testForm">
+            <div class="item">
+                <label for="query">Query:</label>
+                <input id="query" name="q" value="javascript mvvm" />
+            </div>
+	        <input type="hidden" name="rpp" value="1" />
+	        <input type="hidden" name="include_entities" value="false" />
+	        <input type="hidden" name="with_twitter_user_id" value="false" />
+	        <input type="hidden" name="result_type" value="recent" />
+            <div class="item">
+                <label for="language">Language:</label>
+                <input id="language" name="lang" />
+            </div>
+            <input type="submit" />
+            <input type="reset" />
+        </form>
+        
+        <div id="result">
+            <h3>List o problems</h3>
+            <ul></ul>
+        </div>
+        
+        <script type="text/javascript">
+             $(function() { $("form").submit() });
+        </script>
+    </body>
+</html>

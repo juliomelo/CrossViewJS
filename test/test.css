@@ -1,0 +1,20 @@
+.crossview-fetching:before {
+	content: 'Fetching... '
+}
+
+.crossview-loading:before {
+    content: 'Loading... '
+}
+
+.crossview-error:before {
+    content: 'Error! '
+}
+
+.crossview-fetching,
+.crossview-loading {
+    color: gray;
+}
+
+.crossview-error {
+    color: red;
+}

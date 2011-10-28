@@ -45,8 +45,10 @@
      */
     function submitForm(form, callback) {
         
+        var render = form.attr(CrossViewJS.options.attributes.form.render);
+        
         // Split targets and identify views for rendering.
-        var targetsIds = (form.attr(CrossViewJS.options.attributes.form.render) || "").split(",");
+        var targetsIds = render ? render.split(",") : [];
         var targets = [];
         
         for (var i = 0; i < targetsIds.length; i++) {
@@ -78,44 +80,57 @@
             var jsonArgs = form.serializeObject();
             var renderMode = form.attr(CrossViewJS.options.attributes.form.renderMode);
             
-            if (!renderModes[renderMode]) {
+            if (render && !renderModes[renderMode]) {
                 CrossViewJS.notifyError(form, "Unknown render mode: " + renderMode + ".");
                 return false;
             }
             
-            $(targets).each(function() { this.el.addClass(CrossViewJS.options.css.view.fetching); });
+            if (render)
+                $(targets).each(function() { this.el.addClass(CrossViewJS.options.css.view.fetching); });
+            else
+                form.crossview("getViewModel").container.addClass(CrossViewJS.options.css.view.fetching);
+            
+            console.log("Submitting form to " + action);
                 
             CrossViewJS.getJSON(action, { type : method, data : jsonArgs }, fetchMode)
                 .success(function(data) {
+                    if (data)
+                        console.log("Data received from " + action);
+                    else
+                        console.log("No data received from " + action);
+                    
                     try {
                         var path = form.attr(CrossViewJS.options.attributes.fetch.jsonPath);
-
+                        
                         if (path)
                             data = CrossViewJS.traverseJSON(data, path);
 
                         try {
-                            $(targets).each(function() {
-                                try {
-                                    var renderData = {
-                                            form : form,
-                                            target : this.el,
-                                            targetId : this.id,
-                                            targetView : this.view,
-                                            jsonArgs : jsonArgs,
-                                            data : data
-                                    };
-            
-                                    CrossViewJS.requireTemplate(this.view, function() {
-                                        renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
-                                        renderModes[renderMode].apply(form, [renderData]);
-                                    });
-                                } catch (e) {
-                                    $(targets).each(function() {
-                                        renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
-                                        CrossViewJS.notifyError(this.el, e);
-                                    });
-                                }
-                            });
+                            if (render)
+                                $(targets).each(function() {
+                                    try {
+                                        var renderData = {
+                                                form : form,
+                                                target : this.el,
+                                                targetId : this.id,
+                                                targetView : this.view,
+                                                jsonArgs : jsonArgs,
+                                                data : data
+                                        };
+                
+                                        CrossViewJS.requireTemplate(this.view, function() {
+                                            renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
+                                            renderModes[renderMode].apply(form, [renderData]);
+                                        });
+                                    } catch (e) {
+                                        $(targets).each(function() {
+                                            renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
+                                            CrossViewJS.notifyError(this.el, e);
+                                        });
+                                    }
+                                });
+                            else
+                                form.crossview("getViewModel").container.removeClass(CrossViewJS.options.css.view.fetching);                                
                         } finally {
                             if (callback)
                                 callback(data);
@@ -125,10 +140,15 @@
                     }
                 })
                 .error(function(x, e) {
-                    $(targets).each(function() {
-                        renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
-                        CrossViewJS.notifyError(this.el, e);
-                    });
+                    CrossViewJS.notifyError(form, e);
+                    
+                    if (render)
+                        $(targets).each(function() {
+                            renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
+                            CrossViewJS.notifyError(this.el, e);
+                        });
+                    else
+                        form.crossview("getViewModel").container.removeClass(CrossViewJS.options.css.view.fetching);
                 });
         } catch (e) {
             $(targets).each(function() { CrossViewJS.notifyError(this.el, e); });
