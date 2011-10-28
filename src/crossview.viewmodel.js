@@ -46,7 +46,7 @@
              * Class definitions for view-models.
              */
             classes : {
-                "$formSubmission" : function() {
+                "$root" : function() {
                     return  {
                         getRenderData : function() { return this.data; }
                     };

@@ -25,12 +25,14 @@ init:
 
 minimify: js
 	curl --data-urlencode js_code@$(TARGET_JS) -d compilation_level=SIMPLE_OPTIMIZATIONS -d output_info=compiled_code -d output_format=text -o $(TARGET_JS_MIN) http://closure-compiler.appspot.com/compile
+	@@echo Minified version generate on $(TARGET_JS_MIN) 
 
 js: init $(JS_FILES)
-	cat $(JS_FILES) > $(TARGET_JS)
-	find $(TARGET) -type f -name '*.js' -exec sed -i -e 's|@VERSION|$(VER)|g' {} \;
-	rm -f $(TARGET)/crossview.js
-	ln $(NAME).js -s $(TARGET)/crossview.js
+	@@cat $(JS_FILES) > $(TARGET_JS)
+	@@find $(TARGET) -type f -name '*.js' -exec sed -i -e 's|@VERSION|$(VER)|g' {} \;
+	@@rm -f $(TARGET)/crossview.js
+	@@ln $(NAME).js -s $(TARGET)/crossview.js
+	@@echo Generated $(TARGET_JS)
 		
 test/%: js
 	@@echo Executing test $*
