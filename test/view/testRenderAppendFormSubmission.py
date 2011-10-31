@@ -14,7 +14,7 @@ class TestRenderFormSubmission(unittest.TestCase):
         driver = self.driver
         driver.get("file:///" + os.path.dirname(os.getcwd() + "/" +  __file__) + "/postAppend.html")
         driver.find_element_by_css_selector("input[type=\"submit\"]").click()
-        for i in range(10):
+        for i in range(30):
             try:
                 if self.is_element_present(By.CSS_SELECTOR, ".tweet"): break
             except: pass

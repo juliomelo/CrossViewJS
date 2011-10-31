@@ -13,7 +13,7 @@ class TestAssertCss(unittest.TestCase):
     def test_assert_css(self):
         driver = self.driver
         driver.get("file:///" + os.path.dirname(os.getcwd() + "/" +  __file__) + "/assertCss.html")
-        for i in range(5):
+        for i in range(30):
             try:
                 if self.is_element_present(By.CSS_SELECTOR, "#twitter.crossview-fetching"): break
             except: pass

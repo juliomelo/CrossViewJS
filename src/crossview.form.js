@@ -78,7 +78,7 @@
             var action = form.attr("action");
             var method = form.attr("method");
             var jsonArgs = form.serializeObject();
-            var renderMode = form.attr(CrossViewJS.options.attributes.form.renderMode) || "replace";
+            var renderMode = form.attr(CrossViewJS.options.attributes.form.renderMode) || CrossViewJS.options.form.defaultRenderMode;
             
             if (render && !renderModes[renderMode]) {
                 CrossViewJS.notifyError(form, "Unknown render mode: " + renderMode + ".");
@@ -249,7 +249,7 @@
                 if (!viewModelInstance)
                     viewModelInstance = setViewModel(renderContext.target, "$root");
             
-                viewModelInstance.setData(data);
+                viewModelInstance.setData(renderContext.data);
                 renderContext.target.crossview("render");
             });
     

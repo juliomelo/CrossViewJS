@@ -13,7 +13,7 @@ class TestFormViewModel(unittest.TestCase):
     def test_form_view_model(self):
         driver = self.driver
         driver.get("file:///" + os.path.dirname(os.getcwd() + "/" +  __file__) + "/formViewAndViewModel.html")
-        for i in range(10):
+        for i in range(30):
             try:
                 if self.is_element_present(By.CSS_SELECTOR, ".crossview-fetching"): break
             except: pass
