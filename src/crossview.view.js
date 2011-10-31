@@ -251,8 +251,8 @@
 
                 if (viewModelInstance) {
                     // Do basic rendering.
-	            console.log("Rendering " + el.attr("id") + " using " + template + " and view-model " + viewModelInstance.instanceId);
-	                
+                    console.log("Rendering " + el.attr("id") + " using " + template + " and view-model " + viewModelInstance.instanceId);
+                    
                     try {
                         render(template, el, viewModelInstance.getRenderData());
                     } catch (e) {
