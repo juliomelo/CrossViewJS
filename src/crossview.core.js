@@ -85,7 +85,6 @@ console.info = console.info || function(){};
             el.attr(constants.attributes.error, exception);
     
             if (!exception) {
-                debugger;
                 throw "Exception not provided"; 
             }
             
@@ -151,7 +150,7 @@ console.info = console.info || function(){};
             $.extend(true, CrossViewJS.options, options);
             
             if (options.relativePath)
-                setRelativePath(options.relativePath);
+                CrossViewJS.setRelativePath(options.relativePath);
         },
         
         fn : {}

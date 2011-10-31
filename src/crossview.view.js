@@ -200,12 +200,10 @@
             
             var jsonUrl = el.attr(CrossViewJS.options.attributes.fetch.jsonUrl);
             var path = el.attr(CrossViewJS.options.attributes.fetch.jsonPath);
-            var viewModelInstance = el.crossview("getViewModel");
             
             // Check if the view needs to fetch a JSON data.
             if (jsonUrl) {
                 if (el.hasClass(CrossViewJS.options.css.view.fetching)) {
-                    debugger;
                     console.log("Ignoring render view " + el.attr("id") + ", since it is already fetching data.");
                     return;
                 }
@@ -226,6 +224,8 @@
                     console.log("Fetched JSON data from " + jsonUrl + ".");
                     
                     try {
+                        var viewModelInstance = el.crossview("getViewModel");
+                        
                         // Traverse JSON data path...
                         data = CrossViewJS.traverseJSON(data, path);
         
@@ -246,18 +246,22 @@
                 }).error(function(x, e) {
                     CrossViewJS.notifyError(el, "Cannot get JSON from " + jsonUrl + ": " + e || x);
                 });
-            } else if (viewModelInstance) {
-                // Do basic rendering.
-                console.log("Rendering " + el.attr("id") + " using " + template + " and view-model " + viewModelInstance.instanceId);
-                
-                try {
-                    render(template, el, viewModelInstance.getRenderData());
-                } catch (e) {
-                    CrossViewJS.notifyError(el, e);
+            } else {
+                var viewModelInstance = el.crossview("getViewModel");
+
+                if (viewModelInstance) {
+                    // Do basic rendering.
+	            console.log("Rendering " + el.attr("id") + " using " + template + " and view-model " + viewModelInstance.instanceId);
+	                
+                    try {
+                        render(template, el, viewModelInstance.getRenderData());
+                    } catch (e) {
+                        CrossViewJS.notifyError(el, e);
+                    }
+                } else if (!el.crossview("shouldHaveViewModel")) {
+                    console.error("Can't render " + el.attr("id") + " because there is no view-model instanciated.");
                 }
-            } else if (!el.hasClass(CrossViewJS.options.css.view.loadingViewModel)) {
-                console.error("Can't render " + el.attr("id") + " because there is no view-model instanciated.");
-            }
+           }
         });
     }
     

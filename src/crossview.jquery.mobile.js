@@ -31,6 +31,8 @@
     $(function() {
         if ($.mobile) {
             $("[" + CrossViewJS.options.attributes.view.binding + "]").live("crossview-rendered", function() {            
+                var el = $(this);
+
                 try {
                     var page = $($.mobile.activePage);
                     

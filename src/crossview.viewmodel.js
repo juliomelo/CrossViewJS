@@ -62,10 +62,18 @@
                 
                 updateView : function() {
                     if (this.container.attr(CrossViewJS.options.attributes.view.binding)) {
-                        this.container.empty().each(renderView);
+                        this.container.empty().crossview("render");
                     } else {
                         this.container.find("[" + CrossViewJS.options.attributes.view.binding + "]").empty().crossview("render");
                     }
+                },
+
+                updateClosestView : function(el) {
+                	if (el.attr(CrossViewJS.options.attributes.view.binding)) {
+                		el.empty().each(renderView);
+                	} else {
+                		el.parents("[" + CrossViewJS.options.attributes.view.binding + "]:first").empty().crossview("render");
+                	}
                 },
 
                 setData : function(data) {
@@ -162,7 +170,7 @@
             });
 
             if (el.attr(CrossViewJS.options.attributes.view.binding)) {
-                el.each(renderView);
+                el.crossview("render");
             } else {
                 // Since we have already instantiated the view-model, try to render its view.
                 var views = el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.withoutViewModel + "=true])");
@@ -327,7 +335,7 @@
     }
 
     $.extend(CrossViewJS.fn, {
-        shouldHaveViewModel : function() { shouldHaveViewModel(this); },
+        shouldHaveViewModel : function() { return shouldHaveViewModel(this); },
         getViewModel : function() { return getViewModel(this); },
         bindViewModel : function() { this.each(bindViewModel); },
         setViewModelData : function(data) {
