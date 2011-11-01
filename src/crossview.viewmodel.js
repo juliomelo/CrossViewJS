@@ -124,6 +124,11 @@
         
         resources : {
             viewModel : {}
+        },
+        
+        viewModel : {
+            compactThreshold : 10,
+            gbThreshold : 10
         }
         
     });
@@ -177,6 +182,13 @@
                 
                 console.log(views.length + " found. Rendering...");
                 views.removeClass(CrossViewJS.options.css.view.loadingViewModel).crossview("render");
+            }
+            
+            try {
+                if (instanceId % CrossViewJS.options.viewModel.gbThreshold == 0)
+                    runGarbageCollection();
+            } catch (e) {
+                console.error("Can't run garbage collection: " + e);
             }
             
             return instance;
@@ -333,6 +345,40 @@
             CrossViewJS.notifyError($(this), e);
         }
     }
+    
+    function runGarbageCollection() {
+        var free = new Array();
+        
+        console.log("Running garbage collection from CrossViewJS.");
+        
+        for (var i = 1; i <= viewModel.bindidSeq; i++) {
+            if (viewModel.instances[i] && !$("[" + CrossViewJS.options.attributes.viewModel.bindId + "=" + i + "]").length) {
+                console.log("Releasing view-model instance " + i + ".");
+                viewModel.instances[i] = null;
+                free.push(i);
+            } else if (!viewModel.instances[i])
+                free.push(i);
+        }
+        
+        if (free.length > CrossViewJS.options.viewModel.compactThreshold) {
+            console.log("Compacting instances...");
+            
+            while (free.length) {
+                var idx = free.pop();
+                
+                // If idx is from the last element, just remove it.
+                if (idx != viewModel.bindidSeq) {
+                    console.log("Moving instance " + viewModel.bindidSeq + " to " + idx + ".");
+                    viewModel.instances[idx] = viewModel.instances[viewModel.bindidSeq];
+                    $("[" + CrossViewJS.options.attributes.viewModel.bindId + "=" + viewModel.bindidSeq + "]")
+                        .attr(CrossViewJS.options.attributes.viewModel.bindId, idx);
+                }
+
+                viewModel.bindidSeq--;
+                viewModel.instances.pop();
+            }
+        }
+    }
 
     $.extend(CrossViewJS.fn, {
         shouldHaveViewModel : function() { return shouldHaveViewModel(this); },
@@ -345,7 +391,8 @@
     
     $.extend(true, CrossViewJS, {
         viewModel : {
-            requestBinding : requestBinding
+            requestBinding : requestBinding,
+            runGarbageCollection : runGarbageCollection
         }
     });
     
