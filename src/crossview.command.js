@@ -49,8 +49,8 @@
         var form = $(this);
         var before = form.attr(CrossViewJS.options.attributes.beforeCommandSubmission);
         
-        if (before)
-            invokeCommand(form, before);
+        if (before && invokeCommand(form, before) === false)
+            return false; // Supress form submission in this case.
 
         var command = form.attr(CrossViewJS.options.attributes.command);
         var render = form.attr(CrossViewJS.options.attributes.form.render);
