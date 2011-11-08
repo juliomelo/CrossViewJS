@@ -69,11 +69,29 @@
                 },
 
                 updateClosestView : function(el) {
-                	if (el.attr(CrossViewJS.options.attributes.view.binding)) {
-                		el.empty().each(renderView);
-                	} else {
-                		el.parents("[" + CrossViewJS.options.attributes.view.binding + "]:first").empty().crossview("render");
-                	}
+                    if (el.attr(CrossViewJS.options.attributes.view.binding)) {
+                        el.empty().each(renderView);
+                    } else {
+                        el.parents("[" + CrossViewJS.options.attributes.view.binding + "]:first").empty().crossview("render");
+                    }
+                },
+
+                renderWithJSON : function(el) {
+                    var targetId = el.attr(CrossViewJS.options.attributes.viewModel.renderTarget);
+                    var target = $("#" + targetId);
+
+                    if (!target.length) {
+                        notifyError(el, "Target not found: " + targetId);
+                        return;
+                    }
+
+                    target.empty().addClass(CrossViewJS.options.css.view.fetching);
+                    el.crossview("getJSON").success(function(data) {
+                            console.log("Rendering " + targetId + " after command for rendering with JSON.");
+                            target.crossview("render", data);
+                        }).complete(function() {
+                            target.removeClass(CrossViewJS.options.css.view.fetching);
+                        });
                 },
 
                 setData : function(data) {
@@ -118,7 +136,8 @@
             viewModel : {
                 bindId : "data-viewmodel-instance",
                 binding : "data-viewmodel",
-                className : "data-viewmodel-name"
+                className : "data-viewmodel-name",
+                renderTarget : "data-render"
             }
         },
         
@@ -128,8 +147,10 @@
         
         viewModel : {
             compactThreshold : 10,
-            gbThreshold : 10
-        }
+            gbThreshold : 10,
+        },
+
+        commands : viewModel.instancePrototype
         
     });
 
