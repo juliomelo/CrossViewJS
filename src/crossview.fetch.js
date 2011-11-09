@@ -33,7 +33,8 @@
                 fetch : {
                     jsonPath : "data-json-path",
                     jsonUrl : "data-json-url",
-                    fetchMode : "data-fetch-mode"
+                    fetchMode : "data-fetch-mode",
+                    xpath : "data-fetch-xpath"
                 }
             }
     });
@@ -45,11 +46,14 @@
         if (!url)
             url = el.attr(CrossViewJS.options.attributes.fetch.jsonUrl);
         
-        return CrossViewJS.getJSON(url, options, mode);
+        return CrossViewJS.getJSON.call(this, url, options, mode);
     };
     
     /**
      * Gets a JSON from an URL using an conversion strategy (i.e. YQL).
+     * 
+     * @returns An object with three functions: complete, error and success. 
+     * All three functions receives a function as parameter for callback.
      */
     CrossViewJS.getJSON = function(url, options, mode, path) {
         var completeCallback = null;
@@ -144,6 +148,43 @@
                         return "http://query.yahooapis.com/v1/public/yql?format=json&q=select%20*%20from%20json%20where%20url%3D%22" +
                             encodeURIComponent(url) + "%22";
                     }
+                },
+                
+                "yql-html" : {
+                    getResultJSON : function(data) {
+                        return data.query.results;
+                    },
+                    
+                    transformURL : function(url, options) {
+                        if (options && options.data) {
+                            var isFirst = true;
+                            
+                            if (url.indexOf("?") < 0) {
+                                url += "?";
+                            }
+                                
+                            for (var item in options.data) {
+                                if (options.data[item]) {
+                                    if (isFirst)
+                                        isFirst = false;
+                                    else
+                                        url += "&";
+                                        
+                                    url += encodeURIComponent(item) + "=" + encodeURIComponent(options.data[item]);
+                                }
+                            }    
+                            
+                            options.data = null;
+                        }
+                        
+                        var xpath = $(this).attr(CrossViewJS.options.attributes.fetch.xpath);
+
+                        if (!xpath)
+                            throw CrossViewJS.options.attributes.fetch.xpath + " attribute is mandatory for yql-html mode.";
+                        
+                        return "http://query.yahooapis.com/v1/public/yql?format=json&q=select%20*%20from%20html%20where%20url%3D%22" +
+                            encodeURIComponent(url) + "%22%20and%20xpath=%22" + encodeURIComponent(xpath) + "%22";
+                    }
                 }
         };
         
@@ -152,13 +193,13 @@
         if (!modeInstance)
             throw "Unknown mode " + mode + ".";
         
-        url = modeInstance.transformURL(url, options);
+        url = modeInstance.transformURL.call(this, url, options);
         
         $.ajax(url, options)
             .complete(function() { if (completeCallback) completeCallback(arguments); })
             .error(function() { if (errorCallback) errorCallback(arguments); })
             .success(function(data) {
-                data = modeInstance.getResultJSON(data, options);
+                data = modeInstance.getResultJSON.call(this, data, options);
                 
                 if (path)
                     data = CrossViewJS.traversePath(data, path);

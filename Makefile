@@ -18,7 +18,7 @@ TESTS=test/viewModel/testCommandAndUpdate.py \
       test/viewModel/testFormViewModel.py \
       test/view/testFormViewAndViewModel.py
 
-all: test minimify
+all: test minify
 
 clean:
 	rm -rf $(TARGET)
@@ -26,7 +26,7 @@ clean:
 init:
 	mkdir -p $(TARGET)
 
-minimify: js
+minify: js
 	curl --data-urlencode js_code@$(TARGET_JS) -d compilation_level=SIMPLE_OPTIMIZATIONS -d output_info=compiled_code -d output_format=text -o $(TARGET_JS_MIN) http://closure-compiler.appspot.com/compile
 	@@echo Minified version generate on $(TARGET_JS_MIN) 
 
