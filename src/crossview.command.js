@@ -88,7 +88,7 @@
         
         invokeCommand.apply(el, newArgs);
 
-        return false;
+        return invokeCommand.apply(el, newArgs) !== false;
     }
 
     /**
