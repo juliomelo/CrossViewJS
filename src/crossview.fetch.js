@@ -39,14 +39,17 @@
             }
     });
     
-    $.fn.crossview.getJSON = function(url, options) {
+    CrossViewJS.fn.getJSON = function(url, options, path) {
         var el = $(this);
         var mode = el.attr(CrossViewJS.options.attributes.fetch.fetchMode);
         
         if (!url)
             url = el.attr(CrossViewJS.options.attributes.fetch.jsonUrl);
-        
-        return CrossViewJS.getJSON.call(this, url, options, mode);
+
+        if (!path)
+            path = el.attr(CrossViewJS.options.attributes.fetch.jsonPath);
+
+        return CrossViewJS.getJSON.call(this, url, options, mode, path);
     };
     
     /**
@@ -202,7 +205,7 @@
                 data = modeInstance.getResultJSON.call(this, data, options);
                 
                 if (path)
-                    data = CrossViewJS.traversePath(data, path);
+                    data = CrossViewJS.traverseJSON(data, path);
                 
                 successCallback(data, Array.prototype.slice.call(arguments, 1));
             });

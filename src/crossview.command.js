@@ -88,7 +88,7 @@
         
         invokeCommand.apply(el, newArgs);
 
-        return false;
+        return invokeCommand.apply(el, newArgs) !== false;
     }
 
     /**
@@ -113,10 +113,7 @@
         while (instance && !instance[command])
             instance = instance.getAncestorViewModel();
 
-        if (!instance)
-            instance = CrossViewJS.options.commands[command];
-
-        if (instance) {
+        if (instance || CrossViewJS.options.commands[command]) {
             /* Don't use args.unshift here, because "arguments" keyword
              * used to call this method doesn't have this method.
              */
@@ -126,7 +123,10 @@
                 for (var i = 0; i < args.length; i++)
                     newArgs.push(args[i]);
             
-            return instance[command].apply(instance, newArgs);
+            if (instance)
+                return instance[command].apply(instance, newArgs);
+            else
+                return CrossViewJS.options.commands[command].apply(null, newArgs);
         } else {
             CrossViewJS.notifyError(el, "Command not found: " + command + ".");
         }

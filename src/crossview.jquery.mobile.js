@@ -35,13 +35,26 @@
 
                 try {
                     var page = $($.mobile.activePage);
-                    
-                    if (page.get(0) === el.get(0) || page.has(el)) {
+                    var activePage = page.get(0) === el.get(0) || page.has(el);
+
+                    if (activePage || el.parents("[role=main]")) {
                         /* Triggers pagecreate event if jQuery Mobile is present,
                          * so it can bind its rendered elements and customize UI.
                          */
                         console.log("Invoking jQuery Mobile bindings on " + el.attr("id") + ".");
-                        el.trigger("pagecreate");
+                        el.removeData();
+
+                        if (!activePage)
+                            page = el.parents("[data-role=page]");
+
+                        if (page.data("page"))
+                            try {
+                                page.trigger("pagecreate");
+                            } catch (e) {
+                                page.page();
+                            }
+                        else
+                            page.page();
                     }
                } catch (e) {
                    console.log("Error invoking pagecreate for $.mobile: " + e + ".");
