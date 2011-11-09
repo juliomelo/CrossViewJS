@@ -86,8 +86,6 @@
         for (var i = 0; i < arguments.length; i++)
             newArgs.push(arguments[i]);
         
-        invokeCommand.apply(el, newArgs);
-
         return invokeCommand.apply(el, newArgs) !== false;
     }
 
