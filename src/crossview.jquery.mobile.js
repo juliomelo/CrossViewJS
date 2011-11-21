@@ -43,7 +43,18 @@
                          */
                         console.log("Invoking jQuery Mobile bindings on " + el.attr("id") + ".");
                         el.removeData();
-                        el.parents("[data-role=page]").trigger("pagecreate");
+
+                        if (!activePage)
+                            page = el.parents("[data-role=page]");
+
+                        if (page.data("page"))
+                            try {
+                                page.trigger("pagecreate");
+                            } catch (e) {
+                                page.page();
+                            }
+                        else
+                            page.page();
                     }
                } catch (e) {
                    console.log("Error invoking pagecreate for $.mobile: " + e + ".");
