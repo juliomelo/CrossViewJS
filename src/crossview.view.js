@@ -215,7 +215,7 @@
     
                 el.addClass(CrossViewJS.options.css.view.fetching);
     
-                CrossViewJS.getJSON(jsonUrl, null, strategy).success(function(data) {
+                CrossViewJS.getJSON.call(el, jsonUrl, null, strategy).success(function(data) {
                     if (!data) {
                         CrossViewJS.notifyError(el, "No data received from " + jsonUrl + ".");
                         return;

@@ -92,7 +92,7 @@
             
             console.log("Submitting form to " + action);
                 
-            CrossViewJS.getJSON(action, { type : method, data : jsonArgs }, fetchMode)
+            CrossViewJS.getJSON.call(form, action, { type : method, data : jsonArgs }, fetchMode)
                 .success(function(data) {
                     if (data)
                         console.log("Data received from " + action);
