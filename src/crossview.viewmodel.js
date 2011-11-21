@@ -147,7 +147,7 @@
         
         viewModel : {
             compactThreshold : 10,
-            gbThreshold : 10,
+            gbThreshold : 10
         },
 
         commands : viewModel.instancePrototype
