@@ -325,8 +325,6 @@
                 console.log("Binding View-Model \"" + name + "\" to " + $(this).attr("id"));
                 setViewModel($(this), name);
             } else if (CrossViewJS.options.resources.viewModel[name]) {
-                console.log("Loading javascript for View-Model \"" + name + "\" from " + CrossViewJS.getAbsoluteURL(CrossViewJS.options.resources.viewModel[name]) + ".");
-
                 $(this).find("[" + CrossViewJS.options.attributes.view.binding + "]").addClass(CrossViewJS.options.css.view.loadingViewModel);
 
                 var that = $(this);
@@ -335,16 +333,32 @@
                     dataType : "script"
                 });
 
-                $.ajax(CrossViewJS.getAbsoluteURL(CrossViewJS.options.resources.viewModel[name]), ajaxOptions).success(function(data) {
+                var viewModelData = CrossViewJS.options.resources.viewModel[name];
+                var viewModelURL, viewModelCharset;
+
+                // Check if viewModelData is a URL string or an object.
+                if (typeof(viewModelData) == "string") {
+                    viewModelURL = viewModelData;
+                } else {
+                    viewModelURL = viewModelData.href;
+                    ajaxOptions.scriptCharset = viewModelData.charset;
+                    console.log("Using " + ajaxOptions.scriptCharset + " charset for " + viewModelURL + ".");
+                }
+
+                viewModelURL = CrossViewJS.getAbsoluteURL(viewModelURL);
+
+                console.log("Loading javascript for View-Model \"" + name + "\" from " + viewModelURL + ".");
+
+                $.ajax(viewModelURL, ajaxOptions).success(function(data) {
                     var classDefinition = CrossViewJS.traverseJSON(window, name);
                     
                     if (!classDefinition || classDefinition === window)
-                        throw "Undefined class " + name + ", even after having loaded " + CrossViewJS.options.resources.viewModel[name];
+                        throw "Undefined class " + name + ", even after having loaded " + viewModelURL;
                     
                     registerViewModel(name, classDefinition);
                 }).error(function(x, e) {
                     CrossViewJS.options.resources.viewModel[name] = null;
-                    console.error("Error loading javascript for View-Model \"" + name + "\" from " + CrossViewJS.getAbsoluteURL(CrossViewJS.options.resources.viewModel[name]) + ": " + e + ".");
+                    console.error("Error loading javascript for View-Model \"" + name + "\" from " + viewModelURL + ": " + e + ".");
                 }).complete(function() {
                     that.find("." + CrossViewJS.options.css.view.loadingViewModel).each(function () {
                         if (!shouldHaveViewModel($(this)))
