@@ -192,8 +192,10 @@
         var template = el.attr(CrossViewJS.options.attributes.view.binding);
         
         requireTemplate(template, function() {
+
+            var withoutViewModel = el.attr(CrossViewJS.options.attributes.view.withoutViewModel) == "true";
             
-            if (el.crossview("shouldHaveViewModel")) {
+            if (!withoutViewModel && el.crossview("shouldHaveViewModel")) {
                 console.log("Waiting view-model finish loading to render view " + el.attr("id") + ".");
                 return;
             }
@@ -225,7 +227,7 @@
                         data = CrossViewJS.traverseJSON(data, path);
         
                         // Use a View-Model, if available.
-                        if (!viewModelInstance || el.attr(CrossViewJS.options.attributes.view.withoutViewModel) == "true") {
+                        if (!viewModelInstance || withoutViewModel) {
                             console.log("Rendering " + el.attr("id") + " using " + template + " without a View-Model");
                             render(template, el, data);
                         } else {
