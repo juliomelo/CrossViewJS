@@ -70,7 +70,7 @@
 
                 updateClosestView : function(el) {
                     if (el.attr(CrossViewJS.options.attributes.view.binding)) {
-                        el.empty().each(renderView);
+                        el.empty().crossview("render");
                     } else {
                         el.parents("[" + CrossViewJS.options.attributes.view.binding + "]:first").empty().crossview("render");
                     }
@@ -147,7 +147,7 @@
         
         viewModel : {
             compactThreshold : 10,
-            gbThreshold : 10,
+            gbThreshold : 10
         },
 
         commands : viewModel.instancePrototype
