@@ -28,3 +28,19 @@
 .tweet p {
 	margin: 0;
 }
+
+.crossview-loading:before {
+	content: 'Loading... ';
+}
+
+.crossview-fetching:before {
+	content: 'Fetching... ';
+}
+
+.crossview-error {
+	color: red;
+}
+
+.crossview-error:before {
+	content: 'Error! ';
+}
