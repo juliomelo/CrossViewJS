@@ -1,35 +1,34 @@
 <!DOCTYPE html>
 <html>
     <head>
-    	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
+		<script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+		<script type="text/javascript" src="../../target/crossview.js"></script>
 
-	<!-- Library dependencies -->
-    	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
-	<script type="text/javascript" src="http://borismoore.github.com/jsviews/jsrender.js"></script>
-	<script type="text/javascript" src="../../src/crossview.js"></script>
+		<!-- Stylesheet -->
+		<link href="twitter.css" rel="stylesheet" type="text/css" />
 
-	<!-- Stylesheet -->
-	<link href="../ajax.css" rel="stylesheet" type="text/css" />
-	<link href="twitter.css" rel="stylesheet" type="text/css" />
-
-	<!-- Simple MVVM mapping -->
-        <link href="twitterView.html" rel="mvvm-view" type="text/html" />
+		<!-- Simple MVVM mapping -->
+        <link href="twitterView.html" rel="crossview-view" type="text/html" />
     </head>
     <body>
-	<!-- A form whose submission trigger rendering of #twitter -->
+        <h1>Post</h1>
+        <p>This tests an ajax form submission that renders a view.</p>
+        <hr/>
+		<!-- A form whose submission trigger rendering of #twitter -->
         <form method="get"
               action="http://search.twitter.com/search.json"
-              data-view-render="twitter"
               data-fetch-mode="yql"
-              data-view-render-mode="replace">
+              data-form-render="twitter"
+              data-form-render-mode="replace">
             <div class="item">
                 <label for="query">Query:</label>
-                <input id="query" name="q" value="javascript mvvm" />
+                <input id="query" name="q" value="javascript" />
             </div>
-	    <input type="hidden" name="rpp" value="5" />
-	    <input type="hidden" name="include_entities" value="true" />
-	    <input type="hidden" name="with_twitter_user_id" value="true" />
-	    <input type="hidden" name="result_type" value="mixed" />
+		    <input type="hidden" name="rpp" value="5" />
+		    <input type="hidden" name="include_entities" value="true" />
+		    <input type="hidden" name="with_twitter_user_id" value="true" />
+		    <input type="hidden" name="result_type" value="recent" />
             <div class="item">
                 <label for="language">Language:</label>
                 <input id="language" name="lang" />
@@ -38,12 +37,12 @@
             <input type="reset" />
         </form>
 
-	<!-- Twitter view which is renderd on page load and also after form submission (se form attributes) -->
+		<!-- Twitter view which is renderd on page load and also after form submission (se form attributes) -->
         <div id="twitter"
-	     div data-json-url="http://search.twitter.com/search.json?q=javascript+mvvm&rpp=5&include_entities=true&with_twitter_user_id=true&result_type=mixed"            
-	     data-json-path="results"
-	     data-fetch-mode="yql"
-	     data-view="twitterView">
+	         data-json-url="http://search.twitter.com/search.json?q=javascript+mvvm&rpp=5&include_entities=true&with_twitter_user_id=true&result_type=mixed"            
+	         data-json-path="results"
+	         data-fetch-mode="yql"
+	         data-view="twitterView">
 	        <!-- Twitter data will come here -->
 		Loading twitter data...
         </div>
