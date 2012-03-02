@@ -18,8 +18,7 @@ To run automated tests, just do `make test`, but you need to have python e selen
 
 To install dependencies, do:
 
-    $ sudo apt-get install python
-    $ sudo apt-get install python-setuptools
+    $ sudo apt-get install python python-setuptools
     $ sudo easy_install selenium
     
 
