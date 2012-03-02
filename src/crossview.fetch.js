@@ -34,7 +34,9 @@
                     jsonPath : "data-json-path",
                     jsonUrl : "data-json-url",
                     fetchMode : "data-fetch-mode",
-                    xpath : "data-fetch-xpath"
+                    xpath : "data-fetch-xpath",
+                    textUrl : "data-text-url",
+                    htmlUrl : "data-html-url"
                 }
             }
     });
@@ -211,6 +213,53 @@
             });
         
         return run;
+    };
+
+    /**
+     * Loads HTML from an URL to the element.
+     *
+     * @returns this
+     */
+    CrossViewJS.fn.loadHTML = function(url) {
+        this.each(function() {
+            var el = $(this);
+
+            if (!url)
+                url = el.attr(CrossViewJS.options.attributes.fetch.textUrl);
+
+            url = CrossViewJS.getAbsoluteURL(url);
+
+            el.load(url);
+        });
+
+        return this;
+    };
+
+     /**
+     * Loads HTML from an URL to the element.
+     *
+     * @returns this
+     */
+    CrossViewJS.fn.loadText = function(url) {
+        this.each(function() {
+            var el = $(this);
+
+            if (!url)
+                url = el.attr(CrossViewJS.options.attributes.fetch.textUrl);
+
+            url = CrossViewJS.getAbsoluteURL(url);
+
+            $.ajax({
+                       url : url,
+                       dataType : "text",
+                       type : "GET"
+                   })
+                .success(function(data) {
+                     el.text(data);
+                });
+        });
+
+        return this;
     };
 
 })(jQuery);

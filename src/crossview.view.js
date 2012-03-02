@@ -167,6 +167,8 @@
         
                 el.find("[" + CrossViewJS.options.attributes.viewModel.binding + "]:not([" + CrossViewJS.options.attributes.viewModel.bindId + "])").crossview("bindViewModel");
                 el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").each(renderView);
+                el.find("[" + CrossViewJS.options.attributes.fetch.textUrl + "]").crossview("loadText");
+                el.find("[" + CrossViewJS.options.attributes.fetch.htmlUrl + "]").crossview("loadHTML");
 
                 try {
                     el.trigger("crossview-rendered");
