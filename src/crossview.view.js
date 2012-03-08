@@ -166,7 +166,7 @@
                 el.attr(CrossViewJS.options.attributes.view.lastRendering, new Date());
         
                 el.find("[" + CrossViewJS.options.attributes.viewModel.binding + "]:not([" + CrossViewJS.options.attributes.viewModel.bindId + "])").crossview("bindViewModel");
-                el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").each(renderView);
+                el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").data("crossview-parent-data", data).each(renderView).removeData("crossview-parent-data");
                 el.find("[" + CrossViewJS.options.attributes.fetch.textUrl + "]").crossview("loadText");
                 el.find("[" + CrossViewJS.options.attributes.fetch.htmlUrl + "]").crossview("loadHTML");
 
@@ -192,6 +192,7 @@
     function renderView() {
         var el = $(this);
         var template = el.attr(CrossViewJS.options.attributes.view.binding);
+        var parentData = $(this).data("crossview-parent-data");
         
         requireTemplate(template, function() {
 
@@ -245,6 +246,20 @@
                 }).error(function(x, e) {
                     CrossViewJS.notifyError(el, "Cannot get JSON from " + jsonUrl + ": " + e || x);
                 });
+            } else if (parentData) {
+                console.log("Rendering " + el.attr("id") + " using " + template + " and parent's data");
+
+                parentData = CrossViewJS.traverseJSON(parentData, path);
+                
+                if (parentData) {
+                    try {
+                        render(template, el, parentData);
+                    } catch (e) {
+                        CrossViewJS.notifyError(el, e);
+                    }
+                } else {
+                    console.warn("There is no data to render on supplied path: " + path + ".");
+                }
             } else {
                 var viewModelInstance = el.crossview("getViewModel");
 
