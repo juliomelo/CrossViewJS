@@ -220,9 +220,10 @@
      *
      * @returns this
      */
-    CrossViewJS.fn.loadHTML = function(url) {
+    CrossViewJS.fn.loadHTML = function(pUrl) {
         this.each(function() {
             var el = $(this);
+            var url = pUrl;
 
             if (!url)
                 url = el.attr(CrossViewJS.options.attributes.fetch.textUrl);
@@ -240,9 +241,10 @@
      *
      * @returns this
      */
-    CrossViewJS.fn.loadText = function(url) {
+    CrossViewJS.fn.loadText = function(pUrl) {
         this.each(function() {
             var el = $(this);
+            var url = pUrl;
 
             if (!url)
                 url = el.attr(CrossViewJS.options.attributes.fetch.textUrl);
