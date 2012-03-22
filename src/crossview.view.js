@@ -49,7 +49,8 @@
                         binding : "data-view",
                         lastRendering : "data-view-rendered",
                         withoutViewModel : "data-view-without-viewmodel",
-                        className : "data-view-name"
+                        className : "data-view-name",
+                        emptyView : "data-view-empty"
                     }
                 },
                 
@@ -160,15 +161,33 @@
         try {
             CrossViewJS.clearError(el);
             requireTemplate(template, function() {
-                var content = CrossViewJS.template.render(template, data);
+                if (!data) {
+                    data = [null];
+                } else if (!data.length || typeof(data) != "object") {
+                    data = [data];
+                }
+
+                el.empty();
+
+                var toRender = $([]);
+
+                for (var i = 0; i < data.length; i++) {
+                    var content = CrossViewJS.template.render(template, data[i]);
                 
-                el.html(content);
+                    el.append(content);
+
+                    var last = el.children(":last");
+
+                    last.find("[" + CrossViewJS.options.attributes.viewModel.binding + "]:not([" + CrossViewJS.options.attributes.viewModel.bindId + "])")
+                       .add(last.filter("[" + CrossViewJS.options.attributes.viewModel.binding + "]:not([" + CrossViewJS.options.attributes.viewModel.bindId + "])"))
+                       .crossview("bindViewModel");
+
+                    toRender = toRender.add(last.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])")
+                      .add(last.filter("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])"))
+                      .data("crossview-parent-data", data[i]));
+                }
+
                 el.attr(CrossViewJS.options.attributes.view.lastRendering, new Date());
-        
-                el.find("[" + CrossViewJS.options.attributes.viewModel.binding + "]:not([" + CrossViewJS.options.attributes.viewModel.bindId + "])").crossview("bindViewModel");
-                el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").data("crossview-parent-data", data).each(renderView).removeData("crossview-parent-data");
-                el.find("[" + CrossViewJS.options.attributes.fetch.textUrl + "]").crossview("loadText");
-                el.find("[" + CrossViewJS.options.attributes.fetch.htmlUrl + "]").crossview("loadHTML");
 
                 try {
                     el.trigger("crossview-rendered");
@@ -176,6 +195,12 @@
                     console.error('Error invoking "crossview-rendered" event for ' + el.attr("id") + ": " + e + ".");
                     CrossViewJS.notifyError(el, e);
                 }
+
+                // Elements that need to render must be filtered since it may be changed by crossview-rendered event handlers.
+                toRender.filter("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").each(renderView).removeData("crossview-parent-data");
+        
+                el.find("[" + CrossViewJS.options.attributes.fetch.textUrl + "]").crossview("loadText");
+                el.find("[" + CrossViewJS.options.attributes.fetch.htmlUrl + "]").crossview("loadHTML");
             });
         } catch (e) {
             console.error("Error rendering data using template \"" + template + "\": " + e);
@@ -196,14 +221,23 @@
         
         requireTemplate(template, function() {
 
-            var withoutViewModel = el.attr(CrossViewJS.options.attributes.view.withoutViewModel) == "true";
+            var attrWithoutViewModel = el.attr(CrossViewJS.options.attributes.view.withoutViewModel);
+            var withoutViewModel;
+            var jsonUrl = el.attr(CrossViewJS.options.attributes.fetch.jsonUrl);
+
+            if (attrWithoutViewModel) {
+                withoutViewModel = attrWithoutViewModel == "true";
+            } else if (jsonUrl != null || parentData) {
+                withoutViewModel = true;
+            } else {
+                withoutViewModel = false;
+            }
             
             if (!withoutViewModel && el.crossview("shouldHaveViewModel")) {
                 console.log("Waiting view-model finish loading to render view " + el.attr("id") + ".");
                 return;
             }
             
-            var jsonUrl = el.attr(CrossViewJS.options.attributes.fetch.jsonUrl);
             var path = el.attr(CrossViewJS.options.attributes.fetch.jsonPath);
             
             // Check if the view needs to fetch a JSON data.
@@ -228,6 +262,15 @@
                         
                         // Traverse JSON data path...
                         data = CrossViewJS.traverseJSON(data, path);
+
+                        if (!data || data.length === 0) {
+                            var emptyView = el.attr(CrossViewJS.options.attributes.view.emptyView);
+
+                            if (emptyView) {
+                                console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
+                                template = emptyView;
+                            }
+                        }
         
                         // Use a View-Model, if available.
                         if (!viewModelInstance || withoutViewModel) {
