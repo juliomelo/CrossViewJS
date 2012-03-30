@@ -131,10 +131,19 @@
                 view.templates[template] = null;
             });
         } else if (view.templates[template] && callback) {
-            if (view.templates[template].loading)
+            if (view.templates[template].loading) {
                 view.templates[template].callback.push(callback);
-            else 
-                callback();
+            } else { 
+                try {
+                    callback();
+                } catch (e) {
+                    if (e.stack) {
+                        console.error(e.stack);
+                    } else {
+                        console.error(e);
+                    }
+                }
+            }
         } else if (callback) {
             if (template == null) {
                 throw "Template undefined!";
@@ -172,18 +181,30 @@
                 var toRender = $([]);
 
                 for (var i = 0; i < data.length; i++) {
-                    var content = CrossViewJS.template.render(template, data[i]);
+                    var content;
+
+                    try {
+                        var html = CrossViewJS.template.render(template, data[i]);
+                        var content = $(html);
                 
-                    el.append(content);
+                        el.append(content);
+                    } catch (e) {
+                        console.error("Error rendering and appending content from template " + template + " from index " + i + " of data: " + e);
+                        console.error(data[i]);
 
-                    var last = el.children(":last");
+                        if (content)
+                           console.error("Content:\n" + content);
 
-                    last.find("[" + CrossViewJS.options.attributes.viewModel.binding + "]:not([" + CrossViewJS.options.attributes.viewModel.bindId + "])")
-                       .add(last.filter("[" + CrossViewJS.options.attributes.viewModel.binding + "]:not([" + CrossViewJS.options.attributes.viewModel.bindId + "])"))
+                        CrossViewJS.notifyError(el, e);
+                        return;
+                    }
+
+                    content.find("[" + CrossViewJS.options.attributes.viewModel.binding + "]:not([" + CrossViewJS.options.attributes.viewModel.bindId + "])")
+                       .add(content.filter("[" + CrossViewJS.options.attributes.viewModel.binding + "]:not([" + CrossViewJS.options.attributes.viewModel.bindId + "])"))
                        .crossview("bindViewModel");
 
-                    toRender = toRender.add(last.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])")
-                      .add(last.filter("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])"))
+                    toRender = toRender.add(content.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])")
+                      .add(content.filter("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])"))
                       .data("crossview-parent-data", data[i]));
                 }
 
@@ -227,7 +248,7 @@
 
             if (attrWithoutViewModel) {
                 withoutViewModel = attrWithoutViewModel == "true";
-            } else if (jsonUrl != null || parentData) {
+            } else if ((jsonUrl != null || parentData) && !el.attr(CrossViewJS.options.attributes.viewModel.binding)) {
                 withoutViewModel = true;
             } else {
                 withoutViewModel = false;
@@ -290,13 +311,20 @@
                     CrossViewJS.notifyError(el, "Cannot get JSON from " + jsonUrl + ": " + e || x);
                 });
             } else if (parentData) {
-                console.log("Rendering " + el.attr("id") + " using " + template + " and parent's data");
+                console.log("Rendering " + el.attr("id") + " using " + template + " and parent's data through " + path);
 
-                parentData = CrossViewJS.traverseJSON(parentData, path);
+                var data;
+
+                try {
+                    data = CrossViewJS.traverseJSON(parentData, path);
+                } catch (e) {
+                    CrossViewJS.notifyError(el, e);
+                    console.error(parentData);
+                }
                 
-                if (parentData) {
+                if (data) {
                     try {
-                        render(template, el, parentData);
+                        render(template, el, data);
                     } catch (e) {
                         CrossViewJS.notifyError(el, e);
                     }
