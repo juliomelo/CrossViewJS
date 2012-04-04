@@ -170,10 +170,14 @@
         try {
             CrossViewJS.clearError(el);
             requireTemplate(template, function() {
-                if (!data) {
+               console.log("Rendering " + el.attr("id") + " using " + template + " with following data of size " + (!data ? 0 : data.length));
+
+               if (!data) {
                     data = [null];
-                } else if (!data.length || typeof(data) != "object") {
+                } else if (typeof(data.length) == "undefined" || typeof(data) != "object") {
                     data = [data];
+                } else if (!data.length) {
+                    data = [null];
                 }
 
                 el.empty();
@@ -211,14 +215,20 @@
                 el.attr(CrossViewJS.options.attributes.view.lastRendering, new Date());
 
                 try {
-                    el.trigger("crossview-rendered");
+                    el.trigger("crossview-rendered", [ data, template ]);
                 } catch (e) {
                     console.error('Error invoking "crossview-rendered" event for ' + el.attr("id") + ": " + e + ".");
                     CrossViewJS.notifyError(el, e);
                 }
 
                 // Elements that need to render must be filtered since it may be changed by crossview-rendered event handlers.
-                toRender.filter("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").each(renderView).removeData("crossview-parent-data");
+                toRender.filter("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])")
+                    .each(function() {
+                        if (!$(this).attr(CrossViewJS.options.attributes.viewModel.binding)) {
+                            $(this).attr(CrossViewJS.options.attributes.viewModel.bindId, el.attr(CrossViewJS.options.attributes.viewModel.bindId));
+                        }
+                    })
+                    .each(renderView).removeData("crossview-parent-data");
         
                 el.find("[" + CrossViewJS.options.attributes.fetch.textUrl + "]").crossview("loadText");
                 el.find("[" + CrossViewJS.options.attributes.fetch.htmlUrl + "]").crossview("loadHTML");
@@ -290,6 +300,9 @@
                             if (emptyView) {
                                 console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
                                 template = emptyView;
+                            } else {
+                                console.log("View " + template + " being ignored because of empty data.");
+                                return;
                             }
                         }
         
@@ -322,14 +335,22 @@
                     console.error(parentData);
                 }
                 
-                if (data) {
-                    try {
-                        render(template, el, data);
-                    } catch (e) {
-                        CrossViewJS.notifyError(el, e);
+                if (!data || data.length === 0) {
+                    var emptyView = el.attr(CrossViewJS.options.attributes.view.emptyView);
+
+                    if (emptyView) {
+                        console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
+                        template = emptyView;
+                    } else {
+                        console.log("View " + template + " being ignored because of empty data from path " + path + ".");
+                        return;
                     }
-                } else {
-                    console.warn("There is no data to render on supplied path: " + path + ".");
+                }
+
+                try {
+                    render(template, el, data);
+                } catch (e) {
+                    CrossViewJS.notifyError(el, e);
                 }
             } else {
                 var viewModelInstance = el.crossview("getViewModel");
