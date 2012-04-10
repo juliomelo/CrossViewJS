@@ -176,9 +176,9 @@
                     data = [null];
                 } else if (typeof(data.length) == "undefined" || typeof(data) != "object") {
                     data = [data];
-                } else if (!data.length) {
+                } /*else if (!data.length) {
                     data = [null];
-                }
+                }*/
 
                 el.empty();
 
