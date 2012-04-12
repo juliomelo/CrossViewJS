@@ -190,8 +190,6 @@
                     try {
                         var html = CrossViewJS.template.render(template, data[i]);
                         var content = $(html);
-                
-                        el.append(content);
                     } catch (e) {
                         console.error("Error rendering and appending content from template " + template + " from index " + i + " of data: " + e);
                         console.error(data[i]);
@@ -203,13 +201,15 @@
                         return;
                     }
 
-                    content.find("[" + CrossViewJS.options.attributes.viewModel.binding + "]:not([" + CrossViewJS.options.attributes.viewModel.bindId + "])")
-                       .add(content.filter("[" + CrossViewJS.options.attributes.viewModel.binding + "]:not([" + CrossViewJS.options.attributes.viewModel.bindId + "])"))
+                    content.find("[" + CrossViewJS.options.attributes.viewModel.binding + "]")
+                       .add(content.filter("[" + CrossViewJS.options.attributes.viewModel.binding + "]"))
                        .crossview("bindViewModel");
 
-                    toRender = toRender.add(content.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])")
-                      .add(content.filter("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])"))
-                      .data("crossview-parent-data", data[i]));
+                    content.find("[" + CrossViewJS.options.attributes.view.binding + "]")
+                      .add(content.filter("[" + CrossViewJS.options.attributes.view.binding + "]"))
+                      .data("crossview-parent-data", data[i]);
+
+                    content.appendTo(el);
                 }
 
                 el.attr(CrossViewJS.options.attributes.view.lastRendering, new Date());
@@ -222,7 +222,7 @@
                 }
 
                 // Elements that need to render must be filtered since it may be changed by crossview-rendered event handlers.
-                toRender.filter("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])")
+                el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])")
                     .each(function() {
                         if (!$(this).attr(CrossViewJS.options.attributes.viewModel.binding)) {
                             $(this).attr(CrossViewJS.options.attributes.viewModel.bindId, el.attr(CrossViewJS.options.attributes.viewModel.bindId));
@@ -246,128 +246,145 @@
      * [jQuery] This MUST be used on a wrapper.
      */
     function renderView() {
-        var el = $(this);
-        var template = el.attr(CrossViewJS.options.attributes.view.binding);
-        var parentData = $(this).data("crossview-parent-data");
-        
-        requireTemplate(template, function() {
+        $(this).each(function() {
+            var el = $(this);
 
-            var attrWithoutViewModel = el.attr(CrossViewJS.options.attributes.view.withoutViewModel);
-            var withoutViewModel;
-            var jsonUrl = el.attr(CrossViewJS.options.attributes.fetch.jsonUrl);
-
-            if (attrWithoutViewModel) {
-                withoutViewModel = attrWithoutViewModel == "true";
-            } else if ((jsonUrl != null || parentData) && !el.attr(CrossViewJS.options.attributes.viewModel.binding)) {
-                withoutViewModel = true;
-            } else {
-                withoutViewModel = false;
-            }
-            
-            if (!withoutViewModel && el.crossview("shouldHaveViewModel")) {
-                console.log("Waiting view-model finish loading to render view " + el.attr("id") + ".");
+            if (el.data("crossview-rendering")) {
                 return;
             }
+
+            el.data("crossview-rendering", true);
+
+            var template = el.attr(CrossViewJS.options.attributes.view.binding);
+            var parentData = el.data("crossview-parent-data");
+        
+            requireTemplate(template, function() {
+
+                var attrWithoutViewModel = el.attr(CrossViewJS.options.attributes.view.withoutViewModel);
+                var withoutViewModel;
+                var jsonUrl = el.attr(CrossViewJS.options.attributes.fetch.jsonUrl);
+
+                if (attrWithoutViewModel) {
+                    withoutViewModel = attrWithoutViewModel == "true";
+                } else if ((jsonUrl != null || parentData) && !el.attr(CrossViewJS.options.attributes.viewModel.binding)) {
+                    withoutViewModel = true;
+                } else {
+                    withoutViewModel = false;
+                }
             
-            var path = el.attr(CrossViewJS.options.attributes.fetch.jsonPath);
-            
-            // Check if the view needs to fetch a JSON data.
-            if (jsonUrl) {
-                if (el.hasClass(CrossViewJS.options.css.view.fetching)) {
-                    console.log("Ignoring render view " + el.attr("id") + ", since it is already fetching data.");
+                if (!withoutViewModel && el.crossview("shouldHaveViewModel")) {
+                    console.log("Waiting view-model finish loading to render view " + el.attr("id") + ".");
+                    el.data("crossview-rendering", false);
                     return;
                 }
-                
-                var strategy = el.attr(CrossViewJS.options.attributes.fetch.fetchMode);
-    
-                jsonUrl = CrossViewJS.getAbsoluteURL(jsonUrl);
-                console.log("Fetching JSON data from " + jsonUrl + ".");
-    
-                el.addClass(CrossViewJS.options.css.view.fetching);
-    
-                CrossViewJS.getJSON.call(el, jsonUrl, null, strategy).success(function(data) {
-                    console.log("Fetched JSON data from " + jsonUrl + ".");
-                    
-                    try {
-                        var viewModelInstance = el.crossview("getViewModel");
-                        
-                        // Traverse JSON data path...
-                        data = CrossViewJS.traverseJSON(data, path);
-
-                        if (!data || data.length === 0) {
-                            var emptyView = el.attr(CrossViewJS.options.attributes.view.emptyView);
-
-                            if (emptyView) {
-                                console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
-                                template = emptyView;
-                            } else {
-                                console.log("View " + template + " being ignored because of empty data.");
-                                return;
-                            }
-                        }
-        
-                        // Use a View-Model, if available.
-                        if (!viewModelInstance || withoutViewModel) {
-                            console.log("Rendering " + el.attr("id") + " using " + template + " without a View-Model");
-                            render(template, el, data);
-                        } else {
-                            console.log("Rendering " + el.attr("id") + " using " + template + " and its view-model " + viewModelInstance.instanceId + ".");
-                            viewModelInstance.setData(data);
-                            render(template, el, viewModelInstance.getRenderData());
-                        }
-                    } catch (e) {
-                        CrossViewJS.notifyError(el, e);
-                    }
-                }).complete(function() {
-                    el.removeClass(CrossViewJS.options.css.view.fetching);
-                }).error(function(x, e) {
-                    CrossViewJS.notifyError(el, "Cannot get JSON from " + jsonUrl + ": " + e || x);
-                });
-            } else if (parentData) {
-                console.log("Rendering " + el.attr("id") + " using " + template + " and parent's data through " + path);
-
-                var data;
-
-                try {
-                    data = CrossViewJS.traverseJSON(parentData, path);
-                } catch (e) {
-                    CrossViewJS.notifyError(el, e);
-                    console.error(parentData);
-                }
-                
-                if (!data || data.length === 0) {
-                    var emptyView = el.attr(CrossViewJS.options.attributes.view.emptyView);
-
-                    if (emptyView) {
-                        console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
-                        template = emptyView;
-                    } else {
-                        console.log("View " + template + " being ignored because of empty data from path " + path + ".");
+            
+                var path = el.attr(CrossViewJS.options.attributes.fetch.jsonPath);
+            
+                // Check if the view needs to fetch a JSON data.
+                if (jsonUrl) {
+                    if (el.hasClass(CrossViewJS.options.css.view.fetching)) {
+                        console.log("Ignoring render view " + el.attr("id") + ", since it is already fetching data.");
+                        el.data("crossview-rendering", false);
                         return;
                     }
-                }
-
-                try {
-                    render(template, el, data);
-                } catch (e) {
-                    CrossViewJS.notifyError(el, e);
-                }
-            } else {
-                var viewModelInstance = el.crossview("getViewModel");
-
-                if (viewModelInstance) {
-                    // Do basic rendering.
-                    console.log("Rendering " + el.attr("id") + " using " + template + " and view-model " + viewModelInstance.instanceId);
+                
+                    var strategy = el.attr(CrossViewJS.options.attributes.fetch.fetchMode);
+    
+                    jsonUrl = CrossViewJS.getAbsoluteURL(jsonUrl);
+                    console.log("Fetching JSON data from " + jsonUrl + ".");
+    
+                    el.addClass(CrossViewJS.options.css.view.fetching);
+    
+                    CrossViewJS.getJSON.call(el, jsonUrl, null, strategy).success(function(data) {
+                        console.log("Fetched JSON data from " + jsonUrl + ".");
                     
+                        try {
+                            var viewModelInstance = el.crossview("getViewModel");
+                        
+                            // Traverse JSON data path...
+                            data = CrossViewJS.traverseJSON(data, path);
+
+                            if (!data || data.length === 0) {
+                                var emptyView = el.attr(CrossViewJS.options.attributes.view.emptyView);
+
+                                if (emptyView) {
+                                    console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
+                                    template = emptyView;
+                                } else {
+                                    console.log("View " + template + " being ignored because of empty data.");
+                                    return;
+                                }
+                            }
+        
+                            // Use a View-Model, if available.
+                            if (!viewModelInstance || withoutViewModel) {
+                                console.log("Rendering " + el.attr("id") + " using " + template + " without a View-Model");
+                                render(template, el, data);
+                            } else {
+                                console.log("Rendering " + el.attr("id") + " using " + template + " and its view-model " + viewModelInstance.instanceId + ".");
+                                viewModelInstance.setData(data);
+                                render(template, el, viewModelInstance.getRenderData());
+                            }
+                        } catch (e) {
+                            CrossViewJS.notifyError(el, e);
+                        }
+                    }).complete(function() {
+                        el.removeClass(CrossViewJS.options.css.view.fetching);
+                        el.data("crossview-rendering", false);
+                    }).error(function(x, e) {
+                        CrossViewJS.notifyError(el, "Cannot get JSON from " + jsonUrl + ": " + e || x);
+                    });
+                } else if (parentData) {
+                    console.log("Rendering " + el.attr("id") + " using " + template + " and parent's data through " + path);
+
+                    var data;
+
                     try {
-                        render(template, el, viewModelInstance.getRenderData());
+                        data = CrossViewJS.traverseJSON(parentData, path);
+                    } catch (e) {
+                        CrossViewJS.notifyError(el, e);
+                        console.error(parentData);
+                    }
+                
+                    if (!data || data.length === 0) {
+                        var emptyView = el.attr(CrossViewJS.options.attributes.view.emptyView);
+
+                        if (emptyView) {
+                            console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
+                            template = emptyView;
+                        } else {
+                            console.log("View " + template + " being ignored because of empty data from path " + path + ".");
+                            el.data("crossview-rendering", false);
+                            return;
+                        }
+                    }
+
+                    try {
+                        render(template, el, data);
                     } catch (e) {
                         CrossViewJS.notifyError(el, e);
                     }
-                } else if (!el.crossview("shouldHaveViewModel")) {
-                    console.error("Can't render " + el.attr("id") + " because there is no view-model instanciated.");
+
+                    el.data("crossview-rendering", false);
+                } else {
+                    var viewModelInstance = el.crossview("getViewModel");
+
+                    if (viewModelInstance) {
+                        // Do basic rendering.
+                        console.log("Rendering " + el.attr("id") + " using " + template + " and view-model " + viewModelInstance.instanceId);
+                    
+                        try {
+                            render(template, el, viewModelInstance.getRenderData());
+                        } catch (e) {
+                            CrossViewJS.notifyError(el, e);
+                        }
+                    } else if (!el.crossview("shouldHaveViewModel")) {
+                        console.error("Can't render " + el.attr("id") + " because there is no view-model instanciated.");
+                    }
+
+                    el.data("crossview-rendering", false);
                 }
-           }
+            });
         });
     }
     
