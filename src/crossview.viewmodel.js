@@ -199,7 +199,7 @@
                 el.crossview("render");
             } else {
                 // Since we have already instantiated the view-model, try to render its view.
-                var views = el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.withoutViewModel + "=true])");
+                var views = el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.withoutViewModel + "=true]):not([" + CrossViewJS.options.attributes.view.lastRendering + "])");
                 
                 console.log(views.length + " found. Rendering...");
                 views.removeClass(CrossViewJS.options.css.view.loadingViewModel).crossview("render");
@@ -334,17 +334,25 @@
                 });
 
                 var viewModelData = CrossViewJS.options.resources.viewModel[name];
-                var viewModelURL, viewModelCharset;
+
+                if (viewModelData.initialized) {
+                    console.log("Needing " + name + " view-model that is already initialized but not registered. Waiting...");
+                    return;
+                }
 
                 // Check if viewModelData is a URL string or an object.
                 if (typeof(viewModelData) == "string") {
-                    viewModelURL = viewModelData;
-                } else {
-                    viewModelURL = viewModelData.href;
+                    CrossViewJS.options.resources.viewModel[name] = viewModelData = { href : viewModelData };
+                }
+
+                var viewModelURL = viewModelData.href;
+
+                if (viewModelData.charset) {
                     ajaxOptions.scriptCharset = viewModelData.charset;
                     console.log("Using " + ajaxOptions.scriptCharset + " charset for " + viewModelURL + ".");
                 }
 
+                viewModelData.initialized = true;
                 viewModelURL = CrossViewJS.getAbsoluteURL(viewModelURL);
 
                 console.log("Loading javascript for View-Model \"" + name + "\" from " + viewModelURL + ".");

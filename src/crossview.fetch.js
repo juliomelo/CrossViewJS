@@ -230,7 +230,7 @@
 
             url = CrossViewJS.getAbsoluteURL(url);
 
-            el.load(url);
+            el.load(url, function() { $(this).trigger("crossview-rendered"); });
         });
 
         return this;
@@ -258,6 +258,7 @@
                    })
                 .success(function(data) {
                      el.text(data);
+                     el.trigger("crossview-rendered");
                 });
         });
 
