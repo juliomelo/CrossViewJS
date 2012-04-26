@@ -390,17 +390,19 @@
     }
     
     function runGarbageCollection() {
-        var free = new Array();
+        var free = [];
         
-        console.log("Running garbage collection from CrossViewJS.");
+        console.log("Running garbage collection from CrossViewJS. (" + viewModel.bindidSeq + " slots)");
         
         for (var i = 1; i <= viewModel.bindidSeq; i++) {
             if (viewModel.instances[i] && !$("[" + CrossViewJS.options.attributes.viewModel.bindId + "=" + i + "]").length) {
                 console.log("Releasing view-model instance " + i + ".");
                 viewModel.instances[i] = null;
                 free.push(i);
-            } else if (!viewModel.instances[i])
+            } else if (!viewModel.instances[i]) {
+                console.debug("Slot " + i + " is free.");
                 free.push(i);
+           }
         }
         
         if (free.length > CrossViewJS.options.viewModel.compactThreshold) {

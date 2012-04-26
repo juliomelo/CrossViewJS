@@ -89,6 +89,7 @@ console.info = console.info || function(){};
             }
             
             console.error(exception.stack || exception);
+            el.trigger("crossview-error", [ el, exception ]);
         },
     
         /**
