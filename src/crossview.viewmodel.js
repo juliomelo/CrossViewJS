@@ -195,6 +195,8 @@
                 }
             });
 
+            el.trigger("crossview-binded", [ el, instance ]);
+
             if (el.attr(CrossViewJS.options.attributes.view.binding)) {
                 el.crossview("render");
             } else {
@@ -206,8 +208,12 @@
             }
             
             try {
-                if (instanceId % CrossViewJS.options.viewModel.gbThreshold == 0)
-                    runGarbageCollection();
+                if (instanceId % CrossViewJS.options.viewModel.gbThreshold == 0) {
+                    if (!viewModel.runningGarbageCollection) {
+                        viewModel.runningGarbageCollection = true;
+                        setTimeout(runGarbageCollection, 1000);
+                    }
+                }
             } catch (e) {
                 console.error("Can't run garbage collection: " + e);
             }
@@ -423,6 +429,8 @@
                 viewModel.instances.pop();
             }
         }
+
+        viewModel.runningGarbageCollection = false;
     }
 
     $.extend(CrossViewJS.fn, {

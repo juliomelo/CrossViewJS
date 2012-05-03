@@ -50,7 +50,8 @@
                         lastRendering : "data-view-rendered",
                         withoutViewModel : "data-view-without-viewmodel",
                         className : "data-view-name",
-                        emptyView : "data-view-empty"
+                        emptyView : "data-view-empty",
+                        data : "data-view-data"
                     }
                 },
                 
@@ -281,7 +282,7 @@
 
             if (attrWithoutViewModel) {
                 withoutViewModel = attrWithoutViewModel == "true";
-            } else if ((jsonUrl != null || parentData) && !el.attr(CrossViewJS.options.attributes.viewModel.binding)) {
+            } else if ((jsonUrl != null || parentData) && !el.attr(CrossViewJS.options.attributes.viewModel.binding) || el.attr(CrossViewJS.options.attributes.view.data)) {
                 withoutViewModel = true;
             } else {
                 withoutViewModel = false;
@@ -293,11 +294,45 @@
                 CrossViewJS.viewModel.requestBinding();
                 return;
             }
-            
+
             var path = el.attr(CrossViewJS.options.attributes.fetch.jsonPath);
             
-            // Check if the view needs to fetch a JSON data.
-            if (jsonUrl) {
+            if (el.attr(CrossViewJS.options.attributes.view.data)) {
+                if (el.attr("id")) {
+                    console.log("Rendering " + el.attr("id") + " using " + template + " and inline-data");
+                }
+
+                var data;
+
+                try {
+                    data = CrossViewJS.traverseJSON(JSON.parse(el.attr(CrossViewJS.options.attributes.view.data)), path);
+                } catch (e) {
+                    CrossViewJS.notifyError(el, e);
+                    console.error(parentData);
+                }
+                
+                if (!data || data.length === 0) {
+                    var emptyView = el.attr(CrossViewJS.options.attributes.view.emptyView);
+
+                    if (emptyView) {
+                        console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
+                        template = emptyView;
+                    } else {
+                        console.log("View " + template + " being ignored because of empty data from path " + path + ".");
+                        el.data("crossview-rendering", false);
+                        return;
+                    }
+                }
+
+                try {
+                    render(template, el, data);
+                } catch (e) {
+                    CrossViewJS.notifyError(el, e);
+                }
+
+                el.data("crossview-rendering", false);
+	
+            } else if (jsonUrl) { // Check if the view needs to fetch a JSON data.
                 if (el.hasClass(CrossViewJS.options.css.view.fetching)) {
                     console.log("Ignoring render view " + el.attr("id") + ", since it is already fetching data.");
                     el.data("crossview-rendering", false);

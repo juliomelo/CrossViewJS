@@ -36,12 +36,10 @@
      */
     function setupTemplateEngine() {
         // jsrender - https://github.com/BorisMoore/jsrender
-        if ($.template && $.render) {
+        if ($.templates && $.render) {
             CrossViewJS.template = {
-                    setTemplate : function(name, data) {
-                        $("<script id='crossview-template-" + name + "' type='text/x-jquery-tmpl'>" + data + "</script>").template(name);
-                    },
-                    render : $.render
+                    setTemplate : $.templates,
+                    render : function(template, data) { return $($.render[template](data)); }
             };
         }
         // tmpl (beta) -

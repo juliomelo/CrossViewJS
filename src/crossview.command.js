@@ -43,6 +43,8 @@
         $("a[" + CrossViewJS.options.attributes.command + "]").live("click", executeCommand);
         $("button[" + CrossViewJS.options.attributes.command + "]").live("click", executeCommand);
         $("form").live("submit", executeSubmitCommand);
+        $("input[" + CrossViewJS.options.attributes.command + "]").live("change", executeCommand);
+        $("select[" + CrossViewJS.options.attributes.command + "]").live("change", executeCommand);
     }
 
     function executeSubmitCommand() {

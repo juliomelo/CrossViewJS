@@ -33,6 +33,10 @@
             $("[" + CrossViewJS.options.attributes.view.binding + "]").live("crossview-rendered", function() {            
                 var el = $(this);
 
+                if (el.is("select") && el.parent().is(".ui-select")) {
+                    el.siblings("a").remove();
+                }
+
                 try {
                     var page = $($.mobile.activePage);
                     var activePage = page.get(0) === el.get(0) || page.has(el);
