@@ -406,7 +406,7 @@
                 viewModel.instances[i] = null;
                 free.push(i);
             } else if (!viewModel.instances[i]) {
-                console.debug("Slot " + i + " is free.");
+                console.log("Slot " + i + " is free.");
                 free.push(i);
            }
         }
@@ -448,7 +448,7 @@
             runGarbageCollection : runGarbageCollection
         }
     });
-    
+   
     $(requestBinding);
 
 })(jQuery, jQuery.crossview);

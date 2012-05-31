@@ -49,6 +49,7 @@
                         binding : "data-view",
                         lastRendering : "data-view-rendered",
                         withoutViewModel : "data-view-without-viewmodel",
+                        withoutDataPropagation : "data-view-without-datapropagation",
                         className : "data-view-name",
                         emptyView : "data-view-empty",
                         data : "data-view-data"
@@ -200,6 +201,7 @@
 
                         content.find("[" + CrossViewJS.options.attributes.view.binding + "]")
                           .add(content.filter("[" + CrossViewJS.options.attributes.view.binding + "]"))
+                          .filter(":not([" + CrossViewJS.options.attributes.view.withoutDataPropagation + "=true])")
                           .data("crossview-parent-data", data[i]);
                     } catch (e) {
                         console.error("Error rendering and appending content from template " + template + " from index " + i + " of data: " + e);

@@ -57,6 +57,7 @@
                     el : $("#" + $.trim(targetsIds[i]))
             };
             targets[i].view = form.attr(CrossViewJS.options.attributes.view.className) || targets[i].el.attr(CrossViewJS.options.attributes.view.binding); 
+            targets[i].emptyView = form.attr(CrossViewJS.options.attributes.view.emptyView) || targets[i].el.attr(CrossViewJS.options.attributes.view.emptyView);
 
             if (!targets[i].el.length) {
                 CrossViewJS.notifyError(form, "Target element not found: " + targetsIds[i] + ".");
@@ -108,30 +109,17 @@
                         try {
                             if (render)
                                 $(targets).each(function() {
-                                    try {                                        
+                                    try {
                                         var renderData = {
                                                 form : form,
                                                 target : this.el,
                                                 targetId : this.id,
-                                                targetView : this.view,
-                                                jsonArgs : jsonArgs 
+                                                targetView : data && data.length !== 0 ? this.view : (this.emptyView || this.view),
+                                                jsonArgs : jsonArgs ,
+                                                data : (this.emptyView && (!data || data.length === 0) ? [null] : data)
                                         };
-                                        
-                                        if (this.el.attr(CrossViewJS.options.attributes.view.withoutViewModel) == "true")
-                                            renderData.data = data;
-                                        else {
-                                            var modelView = this.el.crossview("getViewModel");
-                                            
-                                            if (modelView) {
-                                                if (modelView.getData() != data)
-                                                    modelView.setData(data);
-                                            
-                                                renderData.data = modelView.getRenderData();
-                                            } else // No model-view, so...
-                                                renderData.data = data;
-                                        }
                 
-                                        CrossViewJS.requireTemplate(this.view, function() {
+                                        CrossViewJS.requireTemplate(renderData.targetView, function() {
                                             renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
                                             renderModes[renderMode].apply(form, [renderData]);
                                         });
@@ -178,7 +166,7 @@
             },
             
             form : {
-                defaultRenderMode : "view-model"
+                defaultRenderMode : "default"
             },
             
             commands : {
@@ -241,14 +229,48 @@
      * after the view is rendered.
      */
     CrossViewJS.form.registerRenderMode(
+            "default", function(renderContext) {
+                var viewModelInstance;
+                var attrWithoutViewModel = renderContext.target.attr(CrossViewJS.options.attributes.view.withoutViewModel);
+                var withoutViewModel;
+
+                if (attrWithoutViewModel) {
+                    withoutViewModel = attrWithoutViewModel == "true";
+                } else if ((jsonUrl != null || parentData) && !renderContext.target.attr(CrossViewJS.options.attributes.viewModel.binding) || renderContext.target.attr(CrossViewJS.options.attributes.view.data)) {
+                    withoutViewModel = true;
+                } else {
+                    withoutViewModel = false;
+                }
+
+                if (!withoutViewModel && renderContext.target.crossview("shouldHaveViewModel")) {
+                    viewModelInstance = renderContext.target.crossview("getViewModel");
+                } else {
+                    viewModelInstance = null;
+                }
+
+                if (!viewModelInstance) {
+                     renderContext.target.crossview("render", renderContext.data, renderContext.targetView);
+                } else {
+                     viewModelInstance.setData(renderContext.data);
+                     renderContext.target.crossview("render");
+                }
+            });
+
+     /**
+     * Sets data to the view-model and use it to render the target.
+     * In this case, the data still stored on view-model instance
+     * after the view is rendered.
+     */
+    CrossViewJS.form.registerRenderMode(
             "view-model", function(renderContext) {
                 var viewModelInstance;
             
                 viewModelInstance = renderContext.target.crossview("getViewModel");
                     
-                if (!viewModelInstance)
+                if (!viewModelInstance) {
                     viewModelInstance = setViewModel(renderContext.target, "$root");
-            
+                }
+
                 viewModelInstance.setData(renderContext.data);
                 renderContext.target.crossview("render");
             });
