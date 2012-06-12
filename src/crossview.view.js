@@ -425,11 +425,22 @@
                     console.log("Rendering " + el.attr("id") + " using " + template + " and view-model " + viewModelInstance.instanceId);
                     
                     try {
-                        render(template, el, viewModelInstance.getRenderData());
+                        var data = viewModelInstance.getRenderData();
+                        
+                        if (!data || data.length === 0) {
+                            var emptyView = el.attr(CrossViewJS.options.attributes.view.emptyView);
+
+                            if (emptyView) {
+                                console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
+                                template = emptyView;
+                            }
+                        }
+
+                        render(template, el, data);
                     } catch (e) {
                         CrossViewJS.notifyError(el, e);
                     }
-                } else if (!el.crossview("shouldHaveViewModel")) {
+		} else if (!el.crossview("shouldHaveViewModel")) {
                     console.error("Can't render " + el.attr("id") + " because there is no view-model instanciated.");
                 }
 
