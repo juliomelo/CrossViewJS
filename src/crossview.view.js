@@ -363,7 +363,7 @@
                             if (emptyView) {
                                 console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
                                 template = emptyView;
-                                data = withoutViewModel ? viewModelInstance.getRenderData() : null;
+                                data = withoutViewModel && viewModelInstance ? viewModelInstance.getRenderData() : null;
                             } else {
                                 console.log("View " + template + " being ignored because of empty data.");
                                 return;
