@@ -237,11 +237,6 @@
 
                 // Elements that need to render must be filtered since it may be changed by crossview-rendered event handlers.
                 toRender.filter("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])")
-                    .each(function() {
-                        if (!$(this).attr(CrossViewJS.options.attributes.viewModel.binding)) {
-                            $(this).attr(CrossViewJS.options.attributes.viewModel.bindId, el.attr(CrossViewJS.options.attributes.viewModel.bindId));
-                        }
-                    })
                     .each(renderView).removeData("crossview-parent-data");
             });
 
