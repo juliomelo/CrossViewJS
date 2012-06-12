@@ -321,7 +321,7 @@
      */
     function bindViewModel() {
         
-        if ($(this).hasClass(CrossViewJS.options.attributes.viewModel.bindId))
+        if ($(this).attr(CrossViewJS.options.attributes.viewModel.bindId) != null)
             return;
 
         try {
