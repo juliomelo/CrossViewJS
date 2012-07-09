@@ -218,7 +218,7 @@
                 var toRender;
 
                 try {
-                    el.attr(CrossViewJS.options.attributes.view.lastRendering, new Date());
+                    el.attr(CrossViewJS.options.attributes.view.lastRendering, new Date().getTime());
                     el.find("[" + CrossViewJS.options.attributes.fetch.textUrl + "]").crossview("loadText");
                     el.find("[" + CrossViewJS.options.attributes.fetch.htmlUrl + "]").crossview("loadHTML");
 
