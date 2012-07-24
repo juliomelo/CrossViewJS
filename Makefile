@@ -5,6 +5,7 @@ NAME = crossview-$(VER)
 JS_FILES=src/crossview.core.js src/crossview.mapping.js src/crossview.view.js src/crossview.viewmodel.js \
 		 src/crossview.template.js src/crossview.fetch.js src/crossview.command.js \
 		 src/crossview.form.js \
+		 src/crossview.viewmodel.knockout.js \
 		 src/crossview.jquery.mobile.js
 
 TARGET=target

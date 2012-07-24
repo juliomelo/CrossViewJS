@@ -226,7 +226,7 @@
             var url = pUrl;
 
             if (!url)
-                url = el.attr(CrossViewJS.options.attributes.fetch.textUrl);
+                url = el.attr(CrossViewJS.options.attributes.fetch.htmlUrl);
 
             url = CrossViewJS.getAbsoluteURL(url);
 
@@ -265,4 +265,6 @@
         return this;
     };
 
+    $("[" + CrossViewJS.options.attributes.fetch.htmlUrl + "]").crossview("loadHTML");
+    $("[" + CrossViewJS.options.attributes.fetch.textUrl + "]").crossview("loadText");
 })(jQuery);
