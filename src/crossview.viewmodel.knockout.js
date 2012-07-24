@@ -2,7 +2,7 @@
  * CrossViewJS @VERSION
  * Model-View Module
  * 
- * Support for Model-View from MVVM pattern.
+ * Support for KnockoutJS framework.
  *
  *
  * The MIT License (MIT)
@@ -50,6 +50,7 @@
             }
         });
 
+        // Add custom bindings for CrossView attributes.
         ko.bindingHandlers.view = {
     	    update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
     	    	$(element).attr(CrossViewJS.options.attributes.view.binding, valueAccessor()()).crossview("render");
