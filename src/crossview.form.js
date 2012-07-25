@@ -92,7 +92,7 @@
                 form.crossview("getViewModel").container.addClass(CrossViewJS.options.css.view.fetching);
             
             console.log("Submitting form to " + action);
-                
+                            
             CrossViewJS.getJSON.call(form, action, { type : method, data : jsonArgs }, fetchMode)
                 .success(function(data) {
                     if (data)
@@ -118,7 +118,13 @@
                                                 jsonArgs : jsonArgs ,
                                                 data : (this.emptyView && (!data || data.length === 0) ? [null] : data)
                                         };
-                
+
+                                        try {
+                                            this.el.trigger("crossview-form-render", [renderData]);
+                                        } catch (e) {
+                                            CrossViewJS.notifyError(this.el, e);
+                                        }
+
                                         CrossViewJS.requireTemplate(renderData.targetView, function() {
                                             renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
                                             renderModes[renderMode].apply(form, [renderData]);
@@ -161,7 +167,8 @@
             attributes : {
                 form : {
                     render : "data-form-render",
-                    renderMode : "data-form-render-mode"
+                    renderMode : "data-form-render-mode",
+                    replaceUrl : "data-form-replace-target-url"
                 }
             },
             
@@ -218,11 +225,33 @@
     CrossViewJS.form.registerRenderMode(
             "replace", function(renderContext) {
                 var path = renderContext.target.attr(CrossViewJS.options.attributes.fetch.jsonPath);
-        
                 var data = CrossViewJS.traverseJSON(renderContext.data, path);
-                renderContext.target.crossview("render", data, renderContext.targetView);
+                
+                if (renderContext.form.attr(CrossViewJS.options.attributes.form.replaceUrl) == "true") {
+                    if (renderContext.form.attr("method").toUpperCase() != "GET") {
+                        CrossVIewJS.notifyError(renderContext.form, "Cannot replace URL for other method than GET.");
+                        return;
+                    }
+                    
+                    var url = renderContext.form.attr("action");
+                    var firstArgument = true;
+                    
+                    for (var arg in renderContext.jsonArgs) {
+                        if (firstArgument) {
+                            firstArgument = false;
+                            url += "?";
+                        } else {
+                            url += "&";
+                        }
+                        url += encodeURIComponent(arg) + "=" + encodeURIComponent(renderContext.jsonArgs[arg]);
+                    }
+                    
+                    renderContext.target.attr(CrossViewJS.options.attributes.fetch.jsonUrl, url);
+                }
+                
+                renderContext.target.crossview("render", data, renderContext.targetView);                
             });
-    
+            
     /**
      * Sets data to the view-model and use it to render the target.
      * In this case, the data still stored on view-model instance
@@ -278,3 +307,4 @@
     CrossViewJS.form.submit = submitForm;
     
 })(jQuery);
+
