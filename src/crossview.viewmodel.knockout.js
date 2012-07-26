@@ -35,7 +35,7 @@
             CrossViewJS.options.viewModel.useKnockout = true;
         
         $(window).bind("crossview-binded", function(e, el, instance) {
-            if (instance.useKnockout || CrossViewJS.options.viewModel.useKnockout) {
+            if (instance.useKnockout || (instance.useKnockout == null || CrossViewJS.options.viewModel.useKnockout)) {
                 ko.applyBindings(instance, e.target);
                
                 if (ko.mapping) { 
