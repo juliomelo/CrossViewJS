@@ -37,15 +37,17 @@
         $(window).bind("crossview-binded", function(e, el, instance) {
             if (instance.useKnockout || CrossViewJS.options.viewModel.useKnockout) {
                 ko.applyBindings(instance, e.target);
+               
+                if (ko.mapping) { 
+                    if (instance.setData === CrossViewJS.options.viewModel.instancePrototype.setData) {
+                        instance.setData = function(data) {
+                            ko.mapping.fromJS(data, this);
+                        };
+                    }
                 
-                if (instance.setData === CrossViewJS.options.viewModel.instancePrototype.setData) {
-                    instance.setData = function(data) {
-                        ko.mapping.fromJS(data, this);
-                    };
-                }
-                
-                if (instance.getRenderData === CrossViewJS.options.viewModel.instancePrototype.getRenderData) {
-                    return this;
+                    if (instance.getRenderData === CrossViewJS.options.viewModel.instancePrototype.getRenderData) {
+                        return this;
+                    }
                 }
             }
         });
