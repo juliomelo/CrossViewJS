@@ -227,13 +227,15 @@
                     console.error('Error looking for rendered children items.');
                     CrossViewJS.notifyError(el, e);
                 }
-
+                
                 try {
                     el.trigger("crossview-rendered", [ data, template ]);
                 } catch (e) {
                     console.error('Error invoking "crossview-rendered" event for ' + el.attr("id") + ": " + e + ".");
                     CrossViewJS.notifyError(el, e);
                 }
+                
+                el.removeClass(CrossViewJS.options.css.view.loadingViewModel);
 
                 // Elements that need to render must be filtered since it may be changed by crossview-rendered event handlers.
                 toRender.filter("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])")
