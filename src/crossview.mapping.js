@@ -41,13 +41,13 @@
         $.getJSON(href).success(function(json) {
             $.extend(CrossViewJS.options.resources.viewModel, json.viewModel);
             $.extend(CrossViewJS.options.resources.view, json.view);
-            CrossViewJS.view.loadTemplates();
+            $(CrossViewJS.view.loadTemplates);
         }).error(function(x, e) {
             console.error("Failed to load View-Model class mapping from " + href + ".");
             throw e;
         }).complete(function() {
             if (--CrossViewJS.loadingMapping === 0) {
-                CrossViewJS.viewModel.requestBinding();
+                $(CrossViewJS.viewModel.requestBinding);
             }
         });    
     }
@@ -93,6 +93,6 @@
         
     $(autoRegister);
     
-    CrossViewJS.fn.loadMapping = loadMapping;
+    CrossViewJS.loadMapping = loadMapping;
 
 })(jQuery);

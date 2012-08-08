@@ -37,6 +37,7 @@
                     view : {
                         fetching : "crossview-fetching",
                         loadingViewModel : "crossview-loading",
+                        renderingView : "crossview-loading",
                         error : "crossview-error"
                     }
                 },
@@ -173,12 +174,13 @@
             CrossViewJS.clearError(el);
 
             el.data("crossview-rendering", true);
+            el.addClass(CrossViewJS.options.css.view.renderingView);
 
             requireTemplate(template, function() {
                 if (el.attr("id")) {
                    console.log("Rendering " + el.attr("id") + " using " + template + " with following data of size " + (!data ? 0 : data.length));
                 }
-
+            
                 if (!data) {
                     data = [null];
                 } else if (typeof(data.length) == "undefined" || typeof(data) != "object") {
@@ -236,16 +238,18 @@
                 }
                 
                 el.removeClass(CrossViewJS.options.css.view.loadingViewModel);
+                el.removeClass(CrossViewJS.options.css.view.renderingView);
 
                 // Elements that need to render must be filtered since it may be changed by crossview-rendered event handlers.
                 toRender.filter("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])")
                     .each(renderView).removeData("crossview-parent-data");
-            });
 
-            el.data("crossview-rendering", false);
+                el.data("crossview-rendering", false);
+            });
         } catch (e) {
             console.error("Error rendering data using template \"" + template + "\": " + e);
             console.error(data);
+            el.removeClass(CrossViewJS.options.css.view.renderingView);
             CrossViewJS.notifyError(el, e);
         }
     }
