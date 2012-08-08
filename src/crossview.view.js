@@ -275,7 +275,10 @@
             if (template != el.attr(CrossViewJS.options.attributes.view.binding)) {
                 console.log('View has changed from "' + template + "' to '" + el.attr(CrossViewJS.options.attributes.view.binding) + "' before renderView got template data.");
                 el.data("crossview-rendering", false);
-                el.call(renderView);
+                
+                if (el.attr(CrossViewJS.options.attributes.view.binding))
+                    el.call(renderView);
+                    
                 return;
             }
 
