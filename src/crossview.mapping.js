@@ -33,29 +33,31 @@
      */
     CrossViewJS.loadingMapping = 0;
     
+    function loadMapping(href) {
+        console.log("Loading CrossView mapping from " + href + ".");
+
+        CrossViewJS.loadingMapping++;
+
+        $.getJSON(href).success(function(json) {
+            $.extend(CrossViewJS.options.resources.viewModel, json.viewModel);
+            $.extend(CrossViewJS.options.resources.view, json.view);
+            CrossViewJS.view.loadTemplates();
+        }).error(function(x, e) {
+            console.error("Failed to load View-Model class mapping from " + href + ".");
+            throw e;
+        }).complete(function() {
+            if (--CrossViewJS.loadingMapping === 0) {
+                CrossViewJS.viewModel.requestBinding();
+            }
+        });    
+    }
+    
     /**
      * Read HTML links of MVVM bindings and do auto-register.
      */
     function autoRegister() {
         $("link[rel='" + CrossViewJS.options.link.autoRegister + "']").each(function() {
-            var href = $(this).attr("href");
-
-            console.log("Loading CrossView mapping from " + href + ".");
-
-            CrossViewJS.loadingMapping++;
-
-            $.getJSON(href).success(function(json) {
-                $.extend(CrossViewJS.options.resources.viewModel, json.viewModel);
-                $.extend(CrossViewJS.options.resources.view, json.view);
-                CrossViewJS.view.loadTemplates();
-            }).error(function(x, e) {
-                console.error("Failed to load View-Model class mapping from " + href + ".");
-                throw e;
-            }).complete(function() {
-                if (--CrossViewJS.loadingMapping === 0) {
-                    CrossViewJS.viewModel.requestBinding();
-                }
-            });
+            loadMapping($(this).attr("href"));
         });
 
         $("link[rel='" + CrossViewJS.options.link.view + "']").each(function() {
@@ -90,5 +92,7 @@
     }
         
     $(autoRegister);
+    
+    CrossViewJS.fn.loadMapping = loadMapping;
 
 })(jQuery);
