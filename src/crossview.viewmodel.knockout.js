@@ -44,10 +44,10 @@
         }
 
         $(window).bind("crossview-binded", function(e, el, instance) {
-            if (instance.useKnockout || (instance.useKnockout == null || CrossViewJS.options.viewModel.useKnockout)) {
+            if (instance.useKnockout || (instance.useKnockout == null && CrossViewJS.options.viewModel.useKnockout)) {
                 ko.applyBindings(instance, e.target);
                
-                if (ko.mapping && instance.useKnockoutMapping) { 
+                if (ko.mapping && (instance.useKnockoutMapping || (instance.useKnockoutMapping == null && CrossViewJS.options.viewModel.useKnockoutMapping))) { 
                     if (instance.setData === CrossViewJS.options.viewModel.instancePrototype.setData) {
                         instance.setData = function(data) {
                             ko.mapping.fromJS(data, this);
