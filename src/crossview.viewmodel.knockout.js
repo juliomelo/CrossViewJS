@@ -28,6 +28,25 @@
  * SOFTWARE.
  */
 (function($) {
+    function applyBindings(target, viewModel) {
+        var koBindings = $("[data-bind]", target);
+                    
+        koBindings.each(function() {
+            var binding = $(this);
+                        
+            // Ensure that view-model is corret.
+            if (binding.crossview("getViewModel") === viewModel) {
+                try {
+                    ko.applyBindings(viewModel, this);
+                } catch (e) {
+                    console.error("Error applying knockout bindings to view-model.");
+                    CrossViewJS.notifyError(jthis, e);
+                    console.error(viewModel);
+                }
+            }
+        });        
+    }
+    
     if (window.ko) {
         console.log("Started CrossViewJS integration with Knockout.");
 
@@ -45,12 +64,43 @@
 
         $(window).bind("crossview-binded", function(e, el, instance) {
             if (instance.useKnockout || (instance.useKnockout == null && CrossViewJS.options.viewModel.useKnockout)) {
-                ko.applyBindings(instance, e.target);
-               
+
+                $(e.target).bind("crossview-rendered", function(e2) {
+                    applyBindings(e2.target, instance);
+                });
+                
+                applyBindings(e.target, instance);
+       
                 if (ko.mapping && (instance.useKnockoutMapping || (instance.useKnockoutMapping == null && CrossViewJS.options.viewModel.useKnockoutMapping))) { 
+                    instance.__ko_mapping__ = {
+                        copy : [],
+                        ignore : [],
+                        include : [ "_destroy" ],
+                        mappedProperties : {},
+                        __crossview_alreadyMapped__ : false
+                    };
+                    
                     if (instance.setData === CrossViewJS.options.viewModel.instancePrototype.setData) {
                         instance.setData = function(data) {
-                            ko.mapping.fromJS(data, this);
+                            /* If it is not yet done, check view-model for already mapped properties,
+                             * to make them updatable from knockout mapping plugin.
+                             */
+                            if (!this.__ko_mapping__.__crossview_alreadyMapped__) {
+                                for (var field in data) {
+                                    if (typeof(this[field]) == "function") {
+                                        this.__ko_mapping__.mappedProperties[field] = true;
+                                    }
+                                }
+                                
+                                this.__ko_mapping__.__crossview_alreadyMapped__ = true;
+                            }
+                            
+                            var mapped = ko.mapping.fromJS(data, this);
+                            
+                            // Check if mapped object is the same view-model that we provided.
+                            if (mapped != this) {
+                                console.error("Knockout Mapping plugin failed to update view-model.", this);
+                            }
                             
                             if (!this.useKnockoutOnTemplate) {
                                 CrossViewJS.options.viewModel.instancePrototype.setData.apply(this, arguments);
@@ -69,27 +119,27 @@
 
         // Add custom bindings for CrossView attributes.
         ko.bindingHandlers.view = {
-    	    update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-    	    	$(element).attr(CrossViewJS.options.attributes.view.binding, valueAccessor()()).crossview("render");
-    	    }
-    	};
+            update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
+                $(element).attr(CrossViewJS.options.attributes.view.binding, valueAccessor()()).crossview("render");
+            }
+        };
         
         ko.bindingHandlers.jsonUrl = {
-    	    update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-    	    	$(element).attr(CrossViewJS.options.attributes.fetch.jsonUrl, valueAccessor()()).crossview("render");
-    	    }
-    	};
+            update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
+                $(element).attr(CrossViewJS.options.attributes.fetch.jsonUrl, valueAccessor()()).crossview("render");
+            }
+        };
 
         ko.bindingHandlers.jsonData = {
-    	    update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-    	    	$(element).attr(CrossViewJS.options.attributes.view.data, valueAccessor()()).crossview("render");
-    	    }
-    	};
+            update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
+                $(element).attr(CrossViewJS.options.attributes.view.data, valueAccessor()()).crossview("render");
+            }
+        };
 
         ko.bindingHandlers.emptyView = {
-    	    update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-    	    	$(element).attr(CrossViewJS.options.attributes.view.emptyView, valueAccessor()()).crossview("render");
-    	    }
-    	};
+            update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
+                $(element).attr(CrossViewJS.options.attributes.view.emptyView, valueAccessor()()).crossview("render");
+            }
+        };
     }
 })(jQuery, jQuery.crossview);
