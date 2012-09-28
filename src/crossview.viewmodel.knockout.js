@@ -31,22 +31,37 @@
     if (window.ko) {
         console.log("Started CrossViewJS integration with Knockout.");
 
-        if (CrossViewJS.options.viewModel.useKnockout !== false)
+        if (CrossViewJS.options.viewModel.useKnockout !== false) {
             CrossViewJS.options.viewModel.useKnockout = true;
+        }
         
+        if (CrossViewJS.options.viewModel.useKnockoutMapping !== false) {
+            CrossViewJS.options.viewModel.useKnockoutMapping = true;
+        }
+
+        if (CrossViewJS.options.viewModel.useKnockoutOnTemplate != true) {
+            CrossViewJS.options.viewModel.useKnockoutOnTemplate = false;
+        }
+
         $(window).bind("crossview-binded", function(e, el, instance) {
             if (instance.useKnockout || (instance.useKnockout == null || CrossViewJS.options.viewModel.useKnockout)) {
                 ko.applyBindings(instance, e.target);
                
-                if (ko.mapping) { 
+                if (ko.mapping && instance.useKnockoutMapping) { 
                     if (instance.setData === CrossViewJS.options.viewModel.instancePrototype.setData) {
                         instance.setData = function(data) {
                             ko.mapping.fromJS(data, this);
+                            
+                            if (!this.useKnockoutOnTemplate) {
+                                CrossViewJS.options.viewModel.instancePrototype.setData.apply(this, arguments);
+                            }
                         };
                     }
                 
-                    if (instance.getRenderData === CrossViewJS.options.viewModel.instancePrototype.getRenderData) {
-                        return this;
+                    if (instance.useKnockoutOnTemplate && instance.getRenderData === CrossViewJS.options.viewModel.instancePrototype.getRenderData) {
+                        instance.getRenderData = function() {
+                            return this;
+                        };
                     }
                 }
             }
