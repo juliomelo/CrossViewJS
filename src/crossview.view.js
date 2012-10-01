@@ -90,6 +90,14 @@
      *              is already loaded.
      */
     function requireTemplate(template, callback) {
+        if (!template) {
+            if (callback) {
+                callback();
+            }
+
+            return;
+        }
+
         if ((!view.templates[template] || !view.templates[template].url) && CrossViewJS.options.resources.view[template]) {
             console.log("Loading template " + template + " from " + CrossViewJS.options.resources.view[template] + ".");
 
@@ -148,10 +156,6 @@
                 }
             }
         } else if (callback) {
-            if (template == null) {
-                throw "Template undefined!";
-            }
-            
             console.log("Needing template " + template + ". Waiting for registration.");
             view.templates[template] = { callback : [ callback ] };
         }
@@ -361,6 +365,19 @@
                         // Traverse JSON data path...
                         data = CrossViewJS.traverseJSON(data, path);
 
+                        if (viewModelInstance && !withoutViewModel) {
+                            console.log("Setting data to view-model " + viewModelInstance.instanceId + ".");
+                            viewModelInstance.setData(data);
+
+                            if (!template) {
+                                return;
+                            }
+                        }
+
+                        if (!template) {
+                            throw new Exception("Fecthed JSON without view or view-model.");
+                        }
+
                         if (!data || data.length === 0) {
                             var emptyView = el.attr(CrossViewJS.options.attributes.view.emptyView);
 
@@ -380,7 +397,6 @@
                             render(template, el, data);
                         } else {
                             console.log("Rendering " + el.attr("id") + " using " + template + " and its view-model " + viewModelInstance.instanceId + ".");
-                            viewModelInstance.setData(data);
                             render(template, el, viewModelInstance.getRenderData());
                         }
                     } catch (e) {

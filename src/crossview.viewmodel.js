@@ -204,8 +204,15 @@
                 // Since we have already instantiated the view-model, try to render its view.
                 var views = el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.withoutViewModel + "=true]):not([" + CrossViewJS.options.attributes.view.lastRendering + "])");
                 
-                console.log(views.length + " found. Rendering...");
+                console.log(views.length + " views found. Rendering...");
                 views.removeClass(CrossViewJS.options.css.view.loadingViewModel).crossview("render");
+
+                // Look for remote data.
+                var urls = el.filter("[" + CrossViewJS.options.attributes.fetch.jsonUrl + "]:not([" + CrossViewJS.options.attributes.view.binding + "]):not([" + CrossViewJS.options.attributes.view.withoutViewModel + "=true])")
+                    .add($("[" + CrossViewJS.options.attributes.fetch.jsonUrl + "]:not([" + CrossViewJS.options.attributes.view.binding + "]):not([" + CrossViewJS.options.attributes.view.withoutViewModel + "=true])", el));
+
+                console.log(urls.length + " urls found. Fetching...");
+                urls.removeClass(CrossViewJS.options.css.view.loadingViewModel).crossview("render");
             }
             
             try {
