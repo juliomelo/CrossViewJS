@@ -146,8 +146,8 @@
         },
         
         viewModel : {
-            compactThreshold : 10,
-            gbThreshold : 10,
+            compactThreshold : 100,
+            gbThreshold : 100,
             instancePrototype : viewModel.instancePrototype
         },
 
@@ -170,20 +170,33 @@
         } else {
             console.log("Binding " + name + " to " + el.attr("id"));
 
-            var instance = new viewModel.classes[name]();
-            var instanceId = ++viewModel.bindidSeq;
+            var viewModelData = CrossViewJS.options.resources.viewModel[name];
+            var instance, instanceId;
 
-            // Instantiate a view-model class, specializing our portotype.
-            for (var method in viewModel.instancePrototype)
-                if (!instance[method])
-                    instance[method] = viewModel.instancePrototype[method];
+            if (!viewModelData.singletonInstance) {
+                instance = new viewModel.classes[name]();
+                instanceId = ++viewModel.bindidSeq;
+
+                 // Instantiate a view-model class, specializing our portotype.
+                 for (var method in viewModel.instancePrototype)
+                     if (!instance[method])
+                         instance[method] = viewModel.instancePrototype[method];
            
-           $.extend(instance, {
-              instanceId : instanceId,
-                container : el
-            });
+                 $.extend(instance, {
+                     instanceId : instanceId,
+                     container : el
+                 });
                    
-            viewModel.instances[instanceId] = instance;
+                 viewModel.instances[instanceId] = instance;
+
+                 if (viewModelData.singleton || viewModelData.flyweight) {
+                     viewModelData.singletonInstance = instance;
+                 }
+            } else {
+                instance = viewModelData.singletonInstance;
+                instanceId = instance.instanceId
+            }
+
             el.attr(CrossViewJS.options.attributes.viewModel.bindId, instanceId);
 
             // Executes "initialize" method, if the view-model has one.
@@ -431,6 +444,7 @@
                     viewModel.instances[idx] = viewModel.instances[viewModel.bindidSeq];
                     $("[" + CrossViewJS.options.attributes.viewModel.bindId + "=" + viewModel.bindidSeq + "]")
                         .attr(CrossViewJS.options.attributes.viewModel.bindId, idx);
+                    viewModel.instances[idx].instanceId = idx;
                 }
 
                 viewModel.bindidSeq--;
