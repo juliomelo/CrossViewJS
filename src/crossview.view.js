@@ -272,12 +272,17 @@
 
         el.data("crossview-rendering", true);
 
-        var template = el.attr(CrossViewJS.options.attributes.view.binding);
-        var parentData = el.data("crossview-parent-data");
+        var temp = el.data("crossview-view-temp");
+        var template = temp ? temp.template : el.attr(CrossViewJS.options.attributes.view.binding);
+        var parentData = temp ? temp.data : el.data("crossview-parent-data");
+        
+        if (temp) {
+            el.removeData("crossview-view-temp");
+        }
         
         requireTemplate(template, function() {
-            if (template != el.attr(CrossViewJS.options.attributes.view.binding)) {
-                console.log('View has changed from "' + template + "' to '" + el.attr(CrossViewJS.options.attributes.view.binding) + "' before renderView got template data.");
+            if (!temp && template != el.attr(CrossViewJS.options.attributes.view.binding)) {
+                console.warn('View has changed from "' + template + "' to '" + el.attr(CrossViewJS.options.attributes.view.binding) + "' before renderView got template data.");
                 el.data("crossview-rendering", false);
                 
                 if (el.attr(CrossViewJS.options.attributes.view.binding))
@@ -435,10 +440,13 @@
                     }
                 }
 
-                try {
+                // Use a View-Model, if available.
+                if (!viewModelInstance || withoutViewModel) {
+                    console.log("Rendering " + el.attr("id") + " using " + template + " without a View-Model");
                     render(template, el, data);
-                } catch (e) {
-                    CrossViewJS.notifyError(el, e);
+                } else {
+                    console.log("Rendering " + el.attr("id") + " using " + template + " and its view-model " + viewModelInstance.instanceId + ".");
+                    render(template, el, viewModelInstance.getRenderData());
                 }
 
                 el.data("crossview-rendering", false);
@@ -501,13 +509,14 @@
     CrossViewJS.fn.render = function(data, template) {
         try {
             if (data) {
-                if (!template)
+                if (!template) {
                     template = $(this).attr(CrossViewJS.options.attributes.view.binding);
+                }
                 
-                render(template, $(this), data);
-            } else {
-                $(this).each(renderView);
+                $(this).data("crossview-view-temp", { data : data, template : template });                
             }
+            
+            $(this).each(renderView);
         } catch (e) {
             CrossViewJS.notifyError($(this), e);
         }
