@@ -276,10 +276,6 @@
         var template = temp ? temp.template : el.attr(CrossViewJS.options.attributes.view.binding);
         var parentData = temp ? temp.data : el.data("crossview-parent-data");
         
-        if (temp) {
-            el.removeData("crossview-view-temp");
-        }
-        
         requireTemplate(template, function() {
             if (!temp && template != el.attr(CrossViewJS.options.attributes.view.binding)) {
                 console.warn('View has changed from "' + template + "' to '" + el.attr(CrossViewJS.options.attributes.view.binding) + "' before renderView got template data.");
@@ -312,7 +308,7 @@
 
             var path = el.attr(CrossViewJS.options.attributes.fetch.jsonPath);
             
-            if (el.attr(CrossViewJS.options.attributes.view.data)) {
+            if (!temp && el.attr(CrossViewJS.options.attributes.view.data)) {
                 if (el.attr("id")) {
                     console.log("Rendering " + el.attr("id") + " using " + template + " and inline-data");
                 }
@@ -347,7 +343,7 @@
 
                 el.data("crossview-rendering", false);
 	
-            } else if (jsonUrl) { // Check if the view needs to fetch a JSON data.
+            } else if (!temp && jsonUrl) { // Check if the view needs to fetch a JSON data.
                 if (el.hasClass(CrossViewJS.options.css.view.fetching)) {
                     console.log("Ignoring render view " + el.attr("id") + ", since it is already fetching data.");
                     el.data("crossview-rendering", false);
@@ -416,6 +412,11 @@
             } else if (parentData) {
                 if (el.attr("id")) {
                     console.log("Rendering " + el.attr("id") + " using " + template + " and parent's data through " + path);
+                }
+
+                // Remove temporary data when rendering really started.
+                if (temp) {
+                    el.removeData("crossview-view-temp");
                 }
 
                 var data;
