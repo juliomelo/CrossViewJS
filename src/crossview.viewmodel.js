@@ -321,16 +321,27 @@
     /**
      * Initiates View-Model binding if it isn't already started.
      */
-    function requestBinding() {
-        if (!viewModel.binding) {
-            viewModel.binding = true;
+    function requestBinding(el) {
+        if (!viewModel.binding || el) {
+	    if (!el) {
+                viewModel.binding = true;
+            }
     
             console.log("Finding view-model to bind...");
     
             try {
-                $("[" + CrossViewJS.options.attributes.viewModel.binding + "]:not([" + CrossViewJS.options.attributes.viewModel.bindId + "])").each(bindViewModel);
+	        var selector = "[" + CrossViewJS.options.attributes.viewModel.binding + "]:not([" + CrossViewJS.options.attributes.viewModel.bindId + "])";
+		
+		if (el) {
+		    el.filter(selector).each(bindViewModel);
+		    $(selector, el).each(bindViewModel);
+		} else {
+		    $(selector).each(bindViewModel);
+		}
             } finally {
-                viewModel.binding = false;
+	        if (!el) {		
+                    viewModel.binding = false;
+		}
             }
         }
     }
@@ -471,6 +482,6 @@
         }
     });
    
-    $(requestBinding);
+    $(function() { requestBinding(); });
 
 })(jQuery, jQuery.crossview);

@@ -47,7 +47,7 @@
             throw e;
         }).complete(function() {
             if (--CrossViewJS.loadingMapping === 0) {
-                $(CrossViewJS.viewModel.requestBinding);
+                $(function() { CrossViewJS.viewModel.requestBinding(); });
             }
         });    
     }

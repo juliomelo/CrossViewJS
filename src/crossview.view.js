@@ -302,7 +302,7 @@
             if (!withoutViewModel && el.crossview("shouldHaveViewModel")) {
                 console.log("Waiting view-model finish loading to render view " + el.attr("id") + ".");
                 el.data("crossview-rendering", false);
-                CrossViewJS.viewModel.requestBinding();
+                CrossViewJS.viewModel.requestBinding(el);
                 return;
             }
 
@@ -416,10 +416,13 @@
                 var data;
 
                 // Remove temporary data when rendering really started.
-                if (temp) {
+                if (temp && temp.data) {
                     el.removeData("crossview-view-temp");
-                    data = temp;
+                    data = temp.data;
                 } else {
+		    if (temp) {
+                        el.removeData("crossview-view-temp");
+		    }
                     try {
                         data = CrossViewJS.traverseJSON(parentData, path);
                     } catch (e) {
@@ -527,7 +530,6 @@
 
     $(function () {
         $(window).ajaxComplete(function () {
-            $(requestBinding);
             $(findAndRenderView);
         });
     });
