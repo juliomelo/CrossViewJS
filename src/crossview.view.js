@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CrossViewJS @VERSION
  * View Module
  * 
@@ -195,15 +195,17 @@
 
                 el.empty();
 
+		var requestBinding = $([]);
+
                 for (var i = 0; i < data.length; i++) {
                     var content = null;
 
                     try {
                         content = CrossViewJS.template.render(template, data[i]);
                         content.appendTo(el);
-                        content.find("[" + CrossViewJS.options.attributes.viewModel.binding + "]")
-                           .add(content.filter("[" + CrossViewJS.options.attributes.viewModel.binding + "]"))
-                           .crossview("bindViewModel");
+
+                        requestBinding = requestBinding.add(content.find("[" + CrossViewJS.options.attributes.viewModel.binding + "]"))
+                           .add(content.filter("[" + CrossViewJS.options.attributes.viewModel.binding + "]"));
 
                         content.find("[" + CrossViewJS.options.attributes.view.binding + "]")
                           .add(content.filter("[" + CrossViewJS.options.attributes.view.binding + "]"))
@@ -243,6 +245,8 @@
 
                 el.removeClass(CrossViewJS.options.css.view.loadingViewModel);
                 el.removeClass(CrossViewJS.options.css.view.renderingView);
+
+                requestBinding.crossview("bindViewModel");
 
                 // Elements that need to render must be filtered since it may be changed by crossview-rendered event handlers.
                 toRender.filter("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])")
