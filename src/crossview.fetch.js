@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CrossViewJS @VERSION
  * Template Module
  * 
@@ -230,7 +230,11 @@
 
             url = CrossViewJS.getAbsoluteURL(url);
 
-            el.load(url, function() { $(this).trigger("crossview-rendered"); });
+            el.addClass(CrossViewJS.options.css.view.fetching);
+            el.load(url, function() {
+                el.removeClass(CrossViewJS.options.css.view.fetching);
+                $(this).trigger("crossview-rendered");
+            });
         });
 
         return this;
@@ -251,6 +255,7 @@
 
             url = CrossViewJS.getAbsoluteURL(url);
 
+            el.addClass(CrossViewJS.options.css.view.fetching);
             $.ajax({
                        url : url,
                        dataType : "text",
@@ -259,7 +264,7 @@
                 .success(function(data) {
                      el.text(data);
                      el.trigger("crossview-rendered");
-                });
+                }).complete(function() { el.removeClass(CrossViewJS.options.css.view.fetching) });
         });
 
         return this;

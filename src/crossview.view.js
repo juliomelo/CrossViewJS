@@ -463,10 +463,13 @@
             } else {
                 if (viewModelInstance) {
                     // Do basic rendering.
-                    console.log("Rendering " + el.attr("id") + " using " + template + " and view-model " + viewModelInstance.instanceId);
+                    console.log("Rendering " + el.attr("id") + " using " + template + " and view-model " + viewModelInstance.instanceId + " and path '" + path + "'.");
 
                     try {
                         var data = viewModelInstance.getRenderData();
+
+                        // Traverse JSON data path...
+                        data = CrossViewJS.traverseJSON(data, path);
 
                         if (!data || data.length === 0) {
                             var emptyView = el.attr(CrossViewJS.options.attributes.view.emptyView);

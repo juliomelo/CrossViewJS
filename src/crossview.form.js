@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CrossViewJS @VERSION
  * Default Form Submission View-Model Module
  * 
