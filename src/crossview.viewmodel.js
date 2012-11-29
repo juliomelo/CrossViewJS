@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CrossViewJS @VERSION
  * Model-View Module
  * 
@@ -265,7 +265,7 @@
             for (var parent = el.parent(); !id && parent.length; parent = parent.parent()) {
                 id = parent.attr(CrossViewJS.options.attributes.viewModel.bindId);
 
-                if (parent.attr(CrossViewJS.options.attributes.viewModel.binding))
+                if (id && viewModel.instances[id])
                     break;
             }
 
