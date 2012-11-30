@@ -200,14 +200,12 @@
             el.attr(CrossViewJS.options.attributes.viewModel.bindId, instanceId);
 
             // Executes "initialize" method, if the view-model has one.
-            $(function() {
-                try {
-                    instance.initialize(el, instanceId);
-                    CrossViewJS.clearError(el);
-                } catch (e) {
-                    CrossViewJS.notifyError(el, e);
-                }
-            });
+            try {
+                instance.initialize(el, instanceId);
+                CrossViewJS.clearError(el);
+            } catch (e) {
+                CrossViewJS.notifyError(el, e);
+            }
 
             el.trigger("crossview-binded", [ el, instance ]);
 
@@ -265,7 +263,7 @@
             for (var parent = el.parent(); !id && parent.length; parent = parent.parent()) {
                 id = parent.attr(CrossViewJS.options.attributes.viewModel.bindId);
 
-                if (id && viewModel.instances[id])
+                if (parent.attr(CrossViewJS.options.attributes.viewModel.binding) || id)
                     break;
             }
 
