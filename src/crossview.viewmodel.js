@@ -265,7 +265,7 @@
 
         if (!id && !el.attr(CrossViewJS.options.attributes.viewModel.binding)) {
             for (var parent = el.parent(); !id && parent.length; parent = parent.parent()) {
-                if (parent.attr(CrossViewJS.options.attributes.viewModel.binding)) {
+                if (parent.attr(CrossViewJS.options.attributes.viewModel.bindId) || parent.attr(CrossViewJS.options.attributes.viewModel.binding)) {
                     id = parent.attr(CrossViewJS.options.attributes.viewModel.bindId);
                     break;
                 }
