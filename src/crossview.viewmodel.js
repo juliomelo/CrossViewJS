@@ -112,8 +112,11 @@
                 }
             },
 
-            getAncestorViewModel: function () {
-                return getAncestorViewModel(this);
+            /**
+            * @param el    Element for reference use.
+            */
+            getAncestorViewModel: function (el) {
+                return getAncestorViewModel(this, el || this.container);
             }
         },
 
@@ -305,8 +308,23 @@
     * Gets the overriden view-model, which is a view-model instance of
     * its ancestor.
     */
-    function getAncestorViewModel(viewModel) {
-        return getViewModel(viewModel.container.parent());
+    function getAncestorViewModel(viewModel, el) {
+        if (viewModel.container) {
+            return getViewModel(viewModel.container.parent());
+        } else if (el) {
+            var ancestor;
+            var search = "[" + CrossViewJS.options.attributes.viewModel.bindId + "=" + viewModel.instanceId + "]";
+
+            ancestor = el.parents(search + ":last").parent();
+
+            if (ancestor.length == 0) {
+                ancestor = el.parent();
+            }
+
+            return getViewModel(ancestor);
+        } else {
+            throw "Cannot get ancestor view-model of a flyweight or singleton view-model, without knowing its container.";
+        }
     }
 
     /**

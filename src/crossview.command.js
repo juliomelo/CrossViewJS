@@ -113,11 +113,7 @@
         var lastElement = el;
 
         while (instance && !instance[command]) {
-            if (instance.container) {
-                instance = instance.getAncestorViewModel();
-            } else {
-                instance = el.parents("[" + CrossViewJS.options.attributes.viewModel.bindId + "=" + instance.instanceId + "]:first").parent().crossview("getViewModel");
-            }
+            instance = instance.getAncestorViewModel(lastElement);
 
             if (instance.container) {
                 lastElement = instance.container;
