@@ -195,7 +195,7 @@
 
                 el.empty();
 
-		var requestBinding = $([]);
+                var requestBinding = $([]);
 
                 for (var i = 0; i < data.length; i++) {
                     var content = null;

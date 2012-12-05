@@ -283,6 +283,10 @@
     * but it have not been loaded yet.
     */
     function shouldHaveViewModel(el) {
+        if (el.attr(CrossViewJS.options.attributes.view.withoutViewModel)) {
+            return false;
+        }
+
         var id = el.attr(CrossViewJS.options.attributes.viewModel.bindId);
         var found = false;
 
