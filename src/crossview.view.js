@@ -424,9 +424,9 @@
                     el.removeData("crossview-view-temp");
                     data = temp.data;
                 } else {
-		    if (temp) {
-                        el.removeData("crossview-view-temp");
-		    }
+		            if (temp) {
+                                el.removeData("crossview-view-temp");
+		            }
                     try {
                         data = CrossViewJS.traverseJSON(parentData, path);
                     } catch (e) {

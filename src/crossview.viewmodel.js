@@ -176,7 +176,7 @@
             var viewModelData = CrossViewJS.options.resources.viewModel[name];
             var instance, instanceId;
 
-            if (!viewModelData.singletonInstance) {
+            if (!viewModelData || !viewModelData.singletonInstance) {
                 instance = new viewModel.classes[name]();
                 instanceId = ++viewModel.bindidSeq;
 

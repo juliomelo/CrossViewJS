@@ -231,10 +231,15 @@
             url = CrossViewJS.getAbsoluteURL(url);
 
             el.addClass(CrossViewJS.options.css.view.fetching);
-            el.load(url, function() {
-                el.removeClass(CrossViewJS.options.css.view.fetching);
-                $(this).trigger("crossview-rendered");
-            });
+            
+            $.ajax({
+                url: url,
+                dataType: "html",
+                type: "GET"
+            }).success(function (data) {
+                    el.html(data);
+                    el.trigger("crossview-rendered");
+            }).complete(function () { el.removeClass(CrossViewJS.options.css.view.fetching) });
         });
 
         return this;
