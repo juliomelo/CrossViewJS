@@ -90,6 +90,8 @@
                 $(targets).each(function() { this.el.addClass(CrossViewJS.options.css.view.fetching); });
             else
                 form.crossview("getViewModel").container.addClass(CrossViewJS.options.css.view.fetching);
+
+	    form.addClass(CrossViewJS.options.css.view.fetching);
             
             console.log("Submitting form to " + action);
                             
@@ -156,7 +158,9 @@
                         });
                     else
                         form.crossview("getViewModel").container.removeClass(CrossViewJS.options.css.view.fetching);
-                });
+                }).complete(function() {
+		    form.removeClass(CrossViewJS.options.css.view.fetching);
+		});
         } catch (e) {
             $(targets).each(function() { CrossViewJS.notifyError(this.el, e); });
         }
