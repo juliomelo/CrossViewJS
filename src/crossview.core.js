@@ -107,12 +107,22 @@ console.info = console.info || function(){};
          * Get an absolute URL for a path.
          */
         getAbsoluteURL : function(path) {
-	    var idx = this.options.relativePath ? path.indexOf("://") : -1;
+	    if (!this.options.relativePath || path.charAt(0) == "/") {
+	        return path;
+            } else {
+  	        var idx = this.options.relativePath ? path.indexOf("://") : -1;
 
-            if ((idx > 0 && idx < path.indexOf("?")) || path.charAt(0) == "/")
-                return path;
-            else
-                return this.options.relativePath + path;
+                if (idx > 0) {
+ 	            var idxQuery = path.indexOf("?");
+		
+		    if (idxQuery < 0 || idxQuery > idx)
+                        return path;
+                    else
+                        return this.options.relativePath + path;
+		} else {
+		    return this.options.relativePath + path;
+		}
+	    }
         },
         
         /**
