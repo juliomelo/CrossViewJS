@@ -80,6 +80,7 @@
             var method = form.attr("method");
             var jsonArgs = form.serializeObject();
             var renderMode = form.attr(CrossViewJS.options.attributes.form.renderMode) || CrossViewJS.options.form.defaultRenderMode;
+            var viewModel;
             
             if (render && !renderModes[renderMode]) {
                 CrossViewJS.notifyError(form, "Unknown render mode: " + renderMode + ".");
@@ -88,8 +89,13 @@
             
             if (render)
                 $(targets).each(function() { this.el.addClass(CrossViewJS.options.css.view.fetching); });
-            else
-                form.crossview("getViewModel").container.addClass(CrossViewJS.options.css.view.fetching);
+            else {
+                viewModel = form.crossview("getViewModel");
+
+                if (viewModel.container) {
+                    viewModel.container.addClass(CrossViewJS.options.css.view.fetching);
+                }
+            }
 
 	    form.addClass(CrossViewJS.options.css.view.fetching);
             
@@ -138,14 +144,14 @@
                                         });
                                     }
                                 });
-                            else
-                                form.crossview("getViewModel").container.removeClass(CrossViewJS.options.css.view.fetching);                                
+                            else if (viewModel.container)
+                                viewModel.container.removeClass(CrossViewJS.options.css.view.fetching);                                
                         } finally {
                             if (callback)
                                 callback(data);
                         }
                     } catch (e) {
-                        $(targets).each(function() { CrossViewJS.notifyError(this.el, e); });
+                        $(targets).add(form).each(function() { CrossViewJS.notifyError(this.el, e); });
                     }
                 })
                 .error(function(x, e) {
@@ -156,13 +162,13 @@
                             renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
                             CrossViewJS.notifyError(this.el, e);
                         });
-                    else
-                        form.crossview("getViewModel").container.removeClass(CrossViewJS.options.css.view.fetching);
+                    else if (viewModel.container)
+                        viewModel.container.removeClass(CrossViewJS.options.css.view.fetching);
                 }).complete(function() {
 		    form.removeClass(CrossViewJS.options.css.view.fetching);
 		});
         } catch (e) {
-            $(targets).each(function() { CrossViewJS.notifyError(this.el, e); });
+            $(targets).add(form).each(function() { CrossViewJS.notifyError(this.el, e); });
         }
     }
     
