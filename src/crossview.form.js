@@ -1,4 +1,4 @@
-﻿/**
+/**
  * CrossViewJS @VERSION
  * Default Form Submission View-Model Module
  * 
@@ -100,8 +100,19 @@
 	    form.addClass(CrossViewJS.options.css.view.fetching);
             
             console.log("Submitting form to " + action);
+
+            var contentType = form.attr(CrossViewJS.options.attributes.form.contentType) || "json";
+            var ajaxOptions;
+
+            if (contentType == "json") {
+                ajaxOptions = { type : method, data : JSON.stringify(jsonArgs), contentType : "application/json" };
+            } else if (contentType == "form") {
+                ajaxOptions = { type : method, data : jsonArgs };
+            } else {
+                throw "Unknown content-type.";
+            }
                             
-            CrossViewJS.getJSON.call(form, action, { type : method, data : jsonArgs }, fetchMode)
+            CrossViewJS.getJSON.call(form, action, ajaxOptions, fetchMode)
                 .success(function(data) {
                     if (data)
                         console.log("Data received from " + action);
@@ -168,17 +179,18 @@
 		    form.removeClass(CrossViewJS.options.css.view.fetching);
 		});
         } catch (e) {
-            $(targets).add(form).each(function() { CrossViewJS.notifyError(this.el, e); });
+            $(targets).add(form).each(function() { CrossViewJS.notifyError($(this), e); });
         }
     }
-    
+
     $.extend(true, CrossViewJS, {
         options : {
             attributes : {
                 form : {
                     render : "data-form-render",
                     renderMode : "data-form-render-mode",
-                    replaceUrl : "data-form-replace-target-url"
+                    replaceUrl : "data-form-replace-target-url",
+                    contentType : "data-form-content-type"
                 }
             },
             
