@@ -195,13 +195,23 @@ console.info = console.info || function(){};
             var o = {};
             var a = this.serializeArray();
             $.each(a, function() {
-                if (o[this.name] !== undefined) {
-                    if (!o[this.name].push) {
-                        o[this.name] = [o[this.name]];
+                var parts = this.name.split('.'), i, obj = o, name = parts[parts.length - 1];
+                
+                for (i = 0; i < parts.length - 1; i++) {
+                    if (obj[parts[i]] === undefined) {
+                        obj = obj[parts[i]] = {};
+                    } else {
+                        obj = obj[parts[i]];
                     }
-                    o[this.name].push(this.value || '');
+                }
+                
+                if (obj[name] !== undefined) {
+                    if (!obj[name].push) {
+                        obj[name] = [obj[name]];
+                    }
+                    obj[name].push(this.value || '');
                 } else {
-                    o[this.name] = this.value || '';
+                    obj[name] = this.value || '';
                 }
             });
             return o;
