@@ -101,7 +101,7 @@
             
             console.log("Submitting form to " + action);
 
-            var contentType = form.attr(CrossViewJS.options.attributes.form.contentType) || "json";
+            var contentType = form.attr(CrossViewJS.options.attributes.form.contentType) || (method.toUpperCase() == "GET" ? "form" : "json");
             var ajaxOptions;
 
             if (contentType == "json") {
