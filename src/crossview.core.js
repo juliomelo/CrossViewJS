@@ -194,6 +194,7 @@ console.info = console.info || function(){};
         {
             var o = {};
             var a = this.serializeArray();
+	    var container = this;
             $.each(a, function() {
                 var parts = this.name.split('.'), i, obj = o, name = parts[parts.length - 1];
                 
@@ -210,6 +211,8 @@ console.info = console.info || function(){};
                         obj[name] = [obj[name]];
                     }
                     obj[name].push(this.value || '');
+		} else if ($("[name=" + name + "]", container).attr("data-json-force-array") == "true") {
+		    obj[name] = [this.value || ''];
                 } else {
                     obj[name] = this.value || '';
                 }
