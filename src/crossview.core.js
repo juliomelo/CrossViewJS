@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CrossViewJS @VERSION
  *
  * A presentation library that facilitates view integration with RESTful
@@ -141,8 +141,9 @@ console.info = console.info || function(){};
             if (path) {
                 path = path.split(".");
             
-                for (var i = 0; i < path.length; i++)
+                for (var i = 0; data && i < path.length; i++) {
                     data = data[path[i]];
+                }
             }
             
             return data;
