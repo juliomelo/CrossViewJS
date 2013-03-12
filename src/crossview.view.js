@@ -342,7 +342,7 @@
                         template = emptyView;
                     } else {
                         console.log("View " + template + " being ignored because of empty data from path " + path + ".");
-                        el.data("crossview-rendering", false);
+                        el.data("crossview-rendering", false).empty().attr(CrossViewJS.options.attributes.view.lastRendering, new Date().getTime());
                         return;
                     }
                 }
@@ -390,6 +390,7 @@
                                 data = withoutViewModel && viewModelInstance ? viewModelInstance.getRenderData() : null;
                             } else {
                                 console.log("View " + template + " being ignored because of empty data.");
+                                el.data("crossview-rendering", false).empty().attr(CrossViewJS.options.attributes.view.lastRendering, new Date().getTime());
                                 return;
                             }
                         }
