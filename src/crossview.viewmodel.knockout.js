@@ -7,7 +7,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2011 JÃºlio CÃ©sar e Melo
+ * Copyright (c) 2011 Júlio César e Melo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,10 +62,10 @@
             CrossViewJS.options.viewModel.useKnockoutOnTemplate = false;
         }
 
-        $(window).bind("crossview-binded", function(e, el, instance) {
+        $(document).on("crossview-binded", function(e, el, instance) {
             if (instance.useKnockout || (instance.useKnockout == null && CrossViewJS.options.viewModel.useKnockout)) {
 
-                $(e.target).bind("crossview-rendered", function(e2) {
+                $(e.target).on("crossview-rendered", function(e2) {
                     applyBindings(e2.target, instance);
                 });
                 

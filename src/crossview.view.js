@@ -1,4 +1,4 @@
-ï»¿/**
+/**
  * CrossViewJS @VERSION
  * View Module
  * 
@@ -7,7 +7,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2011 JÃºlio CÃ©sar e Melo
+ * Copyright (c) 2011 Júlio César e Melo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -274,6 +274,13 @@
             return;
         }
 
+        var temp = el.data("crossview-view-temp");
+        var template = temp ? temp.template : el.attr(CrossViewJS.options.attributes.view.binding);
+        
+        if (!template) {
+            return;
+        }
+        
         el.data("crossview-rendering", true);
 
         var temp = el.data("crossview-view-temp");
@@ -372,14 +379,6 @@
                         if (viewModelInstance && !withoutViewModel) {
                             console.log("Setting data to view-model " + viewModelInstance.instanceId + ".");
                             viewModelInstance.setData(data);
-
-                            if (!template) {
-                                return;
-                            }
-                        }
-
-                        if (!template) {
-                            throw new Exception("Fecthed JSON without view or view-model.");
                         }
 
                         if (!data || data.length === 0) {

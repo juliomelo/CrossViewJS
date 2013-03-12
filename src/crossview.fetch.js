@@ -1,4 +1,4 @@
-ï»¿/**
+/**
  * CrossViewJS @VERSION
  * Template Module
  * 
@@ -7,7 +7,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2011 JÃºlio CÃ©sar e Melo
+ * Copyright (c) 2011 Júlio César e Melo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal

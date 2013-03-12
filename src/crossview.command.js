@@ -8,7 +8,7 @@
  * 
  * The MIT License (MIT)
  * 
- * Copyright (c) 2011 JÃºlio CÃ©sar e Melo
+ * Copyright (c) 2011 Júlio César e Melo
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,11 +40,11 @@
     * @returns Nothing
     */
     function bindCommands() {
-        $("a[" + CrossViewJS.options.attributes.command + "]").live("click", executeCommand);
-        $("button[" + CrossViewJS.options.attributes.command + "]").live("click", executeCommand);
-        $("form").live("submit", executeSubmitCommand);
-        $("input[" + CrossViewJS.options.attributes.command + "]").live("change", executeCommand);
-        $("select[" + CrossViewJS.options.attributes.command + "]").live("change", executeCommand);
+        $(document).on("click", "a[" + CrossViewJS.options.attributes.command + "]", executeCommand);
+        $(document).on("click", "button[" + CrossViewJS.options.attributes.command + "]", executeCommand);
+        $(document).on("submit", "form", executeSubmitCommand);
+        $(document).on("change", "input[" + CrossViewJS.options.attributes.command + "]", executeCommand);
+        $(document).on("change", "select[" + CrossViewJS.options.attributes.command + "]", executeCommand);
     }
 
     function executeSubmitCommand() {

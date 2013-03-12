@@ -1,4 +1,4 @@
-﻿/**
+/**
  * CrossViewJS @VERSION
  *
  * A presentation library that facilitates view integration with RESTful
