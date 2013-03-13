@@ -494,7 +494,10 @@
     }
 
     function findAndRenderView() {
-        $("[" + CrossViewJS.options.attributes.fetch.jsonUrl + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "]):not(." + CrossViewJS.options.css.view.fetching + ")").each(renderView);
+        $("[" + CrossViewJS.options.attributes.view.binding +
+            "][" + CrossViewJS.options.attributes.fetch.jsonUrl + 
+            "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "]):not(." + 
+            CrossViewJS.options.css.view.fetching + "):not(." + CrossViewJS.options.css.view.error + ")").each(renderView);
     }
 
     /**
@@ -527,7 +530,7 @@
                 $(this).data("crossview-view-temp", { data: data, template: template });
             }
 
-            $(this).each(renderView);
+            return $(this).each(renderView);
         } catch (e) {
             CrossViewJS.notifyError($(this), e);
         }
@@ -536,7 +539,7 @@
     CrossViewJS.requireTemplate = requireTemplate;
 
     $(function () {
-        $(window).ajaxComplete(function () {
+        $(document).ajaxComplete(function () {
             $(findAndRenderView);
         });
     });

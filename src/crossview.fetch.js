@@ -232,14 +232,10 @@
 
             el.addClass(CrossViewJS.options.css.view.fetching);
             
-            $.ajax({
-                url: url,
-                dataType: "html",
-                type: "GET"
-            }).success(function (data) {
-                    el.html(data);
-                    el.trigger("crossview-rendered");
-            }).complete(function () { el.removeClass(CrossViewJS.options.css.view.fetching) });
+            el.load(url, function(data) {
+                el.removeClass(CrossViewJS.options.css.view.fetching);
+                el.trigger("crossview-rendered");
+            });
         });
 
         return this;
