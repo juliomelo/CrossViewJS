@@ -120,25 +120,41 @@
         // Add custom bindings for CrossView attributes.
         ko.bindingHandlers.view = {
             update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-                $(element).attr(CrossViewJS.options.attributes.view.binding, valueAccessor()()).crossview("render");
+                var value = valueAccessor()();
+                
+                if ($(element).attr(CrossViewJS.options.attributes.view.binding) != value) {
+                    $(element).attr(CrossViewJS.options.attributes.view.binding, value).crossview("render");
+                }
             }
         };
         
         ko.bindingHandlers.jsonUrl = {
             update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-                $(element).attr(CrossViewJS.options.attributes.fetch.jsonUrl, valueAccessor()()).crossview("render");
+                var value = valueAccessor()();
+                
+                if ($(element).attr(CrossViewJS.options.attributes.fetch.jsonUrl) != value) {
+                    $(element).attr(CrossViewJS.options.attributes.fetch.jsonUrl, value).crossview("render");
+                }
             }
         };
 
         ko.bindingHandlers.jsonData = {
             update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-                $(element).attr(CrossViewJS.options.attributes.view.data, valueAccessor()()).crossview("render");
+                var value = valueAccessor()();
+                
+                if ($(element).attr(CrossViewJS.options.attributes.view.data) != value) {
+                    $(element).attr(CrossViewJS.options.attributes.view.data, value).crossview("render");
+                }
             }
         };
 
         ko.bindingHandlers.emptyView = {
             update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-                $(element).attr(CrossViewJS.options.attributes.view.emptyView, valueAccessor()()).crossview("render");
+                var value = valueAccessor()();
+                
+                if ($(element).attr(CrossViewJS.options.attributes.view.emptyView) != value) {
+                    $(element).attr(CrossViewJS.options.attributes.view.emptyView, value).crossview("render");
+                }
             }
         };
     }
