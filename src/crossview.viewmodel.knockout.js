@@ -34,7 +34,7 @@
         koBindings.each(function() {
             var binding = $(this);
                         
-            // Ensure that view-model is corret.
+            // Ensure that view-model is correct.
             if (binding.crossview("getViewModel") === viewModel) {
                 try {
                     ko.applyBindings(viewModel, this);
