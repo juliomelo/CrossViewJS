@@ -45,7 +45,7 @@
                         /* Triggers pagecreate event if jQuery Mobile is present,
                          * so it can bind its rendered elements and customize UI.
                          */
-                        console.log("Invoking jQuery Mobile bindings on " + el.attr("id") + ".");
+                        CrossViewJS.console.log("Invoking jQuery Mobile bindings on " + el.attr("id") + ".");
                         el.removeData();
 
                         if (!activePage)
@@ -61,7 +61,7 @@
                             page.page();
                     }
                } catch (e) {
-                   console.log("Error invoking pagecreate for $.mobile: " + e + ".");
+                   CrossViewJS.console.log("Error invoking pagecreate for $.mobile: " + e + ".");
                }
             });
         }

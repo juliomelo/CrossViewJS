@@ -108,7 +108,7 @@
     function invokeCommand(el, command, args) {
         var instance = el.crossview("getViewModel");
 
-        console.log("Executing command \"" + command + "\".");
+        CrossViewJS.console.log("Executing command \"" + command + "\".");
 
         var lastElement = el;
 

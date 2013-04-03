@@ -99,7 +99,7 @@
 
 	    form.addClass(CrossViewJS.options.css.view.fetching);
             
-            console.log("Submitting form to " + action);
+            CrossViewJS.console.log("Submitting form to " + action);
 
             var contentType = form.attr(CrossViewJS.options.attributes.form.contentType) || (method.toUpperCase() == "GET" ? "form" : "json");
             var ajaxOptions;
@@ -115,9 +115,9 @@
             CrossViewJS.getJSON.call(form, action, ajaxOptions, fetchMode)
                 .success(function(data) {
                     if (data)
-                        console.log("Data received from " + action);
+                        CrossViewJS.console.log("Data received from " + action);
                     else
-                        console.log("No data received from " + action);
+                        CrossViewJS.console.log("No data received from " + action);
                     
                     try {
                         var path = form.attr(CrossViewJS.options.attributes.fetch.jsonPath);

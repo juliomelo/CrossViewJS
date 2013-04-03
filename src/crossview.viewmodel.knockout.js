@@ -39,16 +39,16 @@
                 try {
                     ko.applyBindings(viewModel, this);
                 } catch (e) {
-                    console.error("Error applying knockout bindings to view-model.");
+                    CrossViewJS.console.error("Error applying knockout bindings to view-model.");
                     CrossViewJS.notifyError(jthis, e);
-                    console.error(viewModel);
+                    CrossViewJS.console.error(viewModel);
                 }
             }
         });        
     }
     
     if (window.ko) {
-        console.log("Started CrossViewJS integration with Knockout.");
+        CrossViewJS.console.log("Started CrossViewJS integration with Knockout.");
 
         if (CrossViewJS.options.viewModel.useKnockout !== false) {
             CrossViewJS.options.viewModel.useKnockout = true;
@@ -99,7 +99,7 @@
                             
                             // Check if mapped object is the same view-model that we provided.
                             if (mapped != this) {
-                                console.error("Knockout Mapping plugin failed to update view-model.", this);
+                                CrossViewJS.console.error("Knockout Mapping plugin failed to update view-model.", this);
                             }
                             
                             if (!this.useKnockoutOnTemplate) {

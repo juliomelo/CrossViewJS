@@ -34,7 +34,7 @@
     CrossViewJS.loadingMapping = 0;
     
     function loadMapping(href) {
-        console.log("Loading CrossView mapping from " + href + ".");
+        CrossViewJS.console.log("Loading CrossView mapping from " + href + ".");
 
         CrossViewJS.loadingMapping++;
 
@@ -43,7 +43,7 @@
             $.extend(CrossViewJS.options.resources.view, json.view);
             $(CrossViewJS.view.loadTemplates);
         }).error(function(x, e) {
-            console.error("Failed to load View-Model class mapping from " + href + ".");
+            CrossViewJS.console.error("Failed to load View-Model class mapping from " + href + ".");
             throw e;
         }).complete(function() {
             if (--CrossViewJS.loadingMapping === 0) {
@@ -67,7 +67,7 @@
             if (!name)
                 name = extractNameFromUrl(href);
 
-            console.log("Registering template for view \"" + name + "\" on " + href + ".");
+            CrossViewJS.console.log("Registering template for view \"" + name + "\" on " + href + ".");
             CrossViewJS.options.resources.view[name] = href;
         });
         

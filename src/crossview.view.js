@@ -99,7 +99,7 @@
         }
 
         if ((!view.templates[template] || !view.templates[template].url) && CrossViewJS.options.resources.view[template]) {
-            console.log("Loading template " + template + " from " + CrossViewJS.options.resources.view[template] + ".");
+            CrossViewJS.CrossViewJS.console.log("Loading template " + template + " from " + CrossViewJS.options.resources.view[template] + ".");
 
             view.templates[template] = {
                 url: CrossViewJS.options.resources.view[template],
@@ -114,7 +114,7 @@
 
             $.ajax(CrossViewJS.getAbsoluteURL(CrossViewJS.options.resources.view[template]), options).success(function (data) {
                 try {
-                    console.log("Template " + template + " loaded from " + CrossViewJS.options.resources.view[template] + ". (" + view.templates[template].callback.length + " callback(s) waiting)");
+                    CrossViewJS.CrossViewJS.console.log("Template " + template + " loaded from " + CrossViewJS.options.resources.view[template] + ". (" + view.templates[template].callback.length + " callback(s) waiting)");
 
                     CrossViewJS.template.setTemplate(template, data);
                 } catch (e) {
@@ -132,13 +132,13 @@
                         cb();
                     } catch (e) {
                         if (e.stack)
-                            console.error(e.stack);
+                            CrossViewJS.CrossViewJS.console.error(e.stack);
                         else
-                            console.error(e);
+                            CrossViewJS.CrossViewJS.console.error(e);
                     }
                 }
             }).error(function (x, e) {
-                console.error("Error loading template \"" + template + "\" from " + CrossViewJS.options.resources.view[template] + ": " + e + ".");
+                CrossViewJS.CrossViewJS.console.error("Error loading template \"" + template + "\" from " + CrossViewJS.options.resources.view[template] + ": " + e + ".");
                 view.templates[template] = null;
             });
         } else if (view.templates[template] && callback) {
@@ -149,14 +149,14 @@
                     callback();
                 } catch (e) {
                     if (e.stack) {
-                        console.error(e.stack);
+                        CrossViewJS.CrossViewJS.console.error(e.stack);
                     } else {
-                        console.error(e);
+                        CrossViewJS.CrossViewJS.console.error(e);
                     }
                 }
             }
         } else if (callback) {
-            console.log("Needing template " + template + ". Waiting for registration.");
+            CrossViewJS.CrossViewJS.console.log("Needing template " + template + ". Waiting for registration.");
             view.templates[template] = { callback: [callback] };
         }
     }
@@ -182,7 +182,7 @@
 
             requireTemplate(template, function () {
                 if (el.attr("id")) {
-                    console.log("Rendering " + el.attr("id") + " using " + template + " with following data of size " + (!data ? 0 : data.length));
+                    CrossViewJS.CrossViewJS.console.log("Rendering " + el.attr("id") + " using " + template + " with following data of size " + (!data ? 0 : data.length));
                 }
 
                 if (!data) {
@@ -212,11 +212,11 @@
                           .filter(":not([" + CrossViewJS.options.attributes.view.withoutDataPropagation + "=true])")
                           .data("crossview-parent-data", data[i]);
                     } catch (e) {
-                        console.error("Error rendering and appending content from template " + template + " from index " + i + " of data: " + e);
-                        console.error(data[i]);
+                        CrossViewJS.CrossViewJS.console.error("Error rendering and appending content from template " + template + " from index " + i + " of data: " + e);
+                        CrossViewJS.CrossViewJS.console.error(data[i]);
 
                         if (content)
-                            console.error("Content:\n" + content);
+                            CrossViewJS.CrossViewJS.console.error("Content:\n" + content);
 
                         CrossViewJS.notifyError(el, e);
                         return;
@@ -232,14 +232,14 @@
 
                     toRender = el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])");
                 } catch (e) {
-                    console.error('Error looking for rendered children items.');
+                    CrossViewJS.CrossViewJS.console.error('Error looking for rendered children items.');
                     CrossViewJS.notifyError(el, e);
                 }
 
                 try {
                     el.trigger("crossview-rendered", [data, template]);
                 } catch (e) {
-                    console.error('Error invoking "crossview-rendered" event for ' + el.attr("id") + ": " + e + ".");
+                    CrossViewJS.CrossViewJS.console.error('Error invoking "crossview-rendered" event for ' + el.attr("id") + ": " + e + ".");
                     CrossViewJS.notifyError(el, e);
                 }
 
@@ -255,8 +255,8 @@
                 el.data("crossview-rendering", false);
             });
         } catch (e) {
-            console.error("Error rendering data using template \"" + template + "\": " + e);
-            console.error(data);
+            CrossViewJS.CrossViewJS.console.error("Error rendering data using template \"" + template + "\": " + e);
+            CrossViewJS.CrossViewJS.console.error(data);
             el.removeClass(CrossViewJS.options.css.view.renderingView);
             CrossViewJS.notifyError(el, e);
         }
@@ -289,7 +289,7 @@
 
         requireTemplate(template, function () {
             if (!temp && template != el.attr(CrossViewJS.options.attributes.view.binding)) {
-                console.warn('View has changed from "' + template + "' to '" + el.attr(CrossViewJS.options.attributes.view.binding) + "' before renderView got template data.");
+                CrossViewJS.CrossViewJS.console.warn('View has changed from "' + template + "' to '" + el.attr(CrossViewJS.options.attributes.view.binding) + "' before renderView got template data.");
                 el.data("crossview-rendering", false);
 
                 if (el.attr(CrossViewJS.options.attributes.view.binding))
@@ -311,7 +311,7 @@
             }
 
             if (!withoutViewModel && el.crossview("shouldHaveViewModel")) {
-                console.log("Waiting view-model finish loading to render view " + el.attr("id") + ".");
+                CrossViewJS.CrossViewJS.console.log("Waiting view-model finish loading to render view " + el.attr("id") + ".");
                 el.data("crossview-rendering", false);
                 CrossViewJS.viewModel.requestBinding(el);
                 return;
@@ -322,7 +322,7 @@
 
             if (!temp && el.attr(CrossViewJS.options.attributes.view.data)) {
                 if (el.attr("id")) {
-                    console.log("Rendering " + el.attr("id") + " using " + template + " and inline-data");
+                    CrossViewJS.CrossViewJS.console.log("Rendering " + el.attr("id") + " using " + template + " and inline-data");
                 }
 
                 var data;
@@ -331,17 +331,17 @@
                     data = CrossViewJS.traverseJSON(JSON.parse(el.attr(CrossViewJS.options.attributes.view.data)), path);
                 } catch (e) {
                     CrossViewJS.notifyError(el, e);
-                    console.error(parentData);
+                    CrossViewJS.CrossViewJS.console.error(parentData);
                 }
 
                 if (!data || data.length === 0) {
                     var emptyView = el.attr(CrossViewJS.options.attributes.view.emptyView);
 
                     if (emptyView) {
-                        console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
+                        CrossViewJS.CrossViewJS.console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
                         template = emptyView;
                     } else {
-                        console.log("View " + template + " being ignored because of empty data from path " + path + ".");
+                        CrossViewJS.CrossViewJS.console.log("View " + template + " being ignored because of empty data from path " + path + ".");
                         el.data("crossview-rendering", false).empty().attr(CrossViewJS.options.attributes.view.lastRendering, new Date().getTime());
                         return;
                     }
@@ -357,7 +357,7 @@
 
             } else if (!temp && jsonUrl) { // Check if the view needs to fetch a JSON data.
                 if (el.hasClass(CrossViewJS.options.css.view.fetching)) {
-                    console.log("Ignoring render view " + el.attr("id") + ", since it is already fetching data.");
+                    CrossViewJS.CrossViewJS.console.log("Ignoring render view " + el.attr("id") + ", since it is already fetching data.");
                     el.data("crossview-rendering", false);
                     return;
                 }
@@ -365,19 +365,19 @@
                 var strategy = el.attr(CrossViewJS.options.attributes.fetch.fetchMode);
 
                 jsonUrl = CrossViewJS.getAbsoluteURL(jsonUrl);
-                console.log("Fetching JSON data from " + jsonUrl + ".");
+                CrossViewJS.CrossViewJS.console.log("Fetching JSON data from " + jsonUrl + ".");
 
                 el.addClass(CrossViewJS.options.css.view.fetching);
 
                 CrossViewJS.getJSON.call(el, jsonUrl, null, strategy).success(function (data) {
-                    console.log("Fetched JSON data from " + jsonUrl + ".");
+                    CrossViewJS.CrossViewJS.console.log("Fetched JSON data from " + jsonUrl + ".");
 
                     try {
                         // Traverse JSON data path...
                         data = CrossViewJS.traverseJSON(data, path);
 
                         if (viewModelInstance && !withoutViewModel) {
-                            console.log("Setting data to view-model " + viewModelInstance.instanceId + ".");
+                            CrossViewJS.CrossViewJS.console.log("Setting data to view-model " + viewModelInstance.instanceId + ".");
                             viewModelInstance.setData(data);
                         }
 
@@ -385,11 +385,11 @@
                             var emptyView = el.attr(CrossViewJS.options.attributes.view.emptyView);
 
                             if (emptyView) {
-                                console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
+                                CrossViewJS.CrossViewJS.console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
                                 template = emptyView;
                                 data = withoutViewModel && viewModelInstance ? viewModelInstance.getRenderData() : null;
                             } else {
-                                console.log("View " + template + " being ignored because of empty data.");
+                                CrossViewJS.CrossViewJS.console.log("View " + template + " being ignored because of empty data.");
                                 el.data("crossview-rendering", false).empty().attr(CrossViewJS.options.attributes.view.lastRendering, new Date().getTime());
                                 return;
                             }
@@ -397,10 +397,10 @@
 
                         // Use a View-Model, if available.
                         if (!viewModelInstance || withoutViewModel) {
-                            console.log("Rendering " + el.attr("id") + " using " + template + " without a View-Model");
+                            CrossViewJS.CrossViewJS.console.log("Rendering " + el.attr("id") + " using " + template + " without a View-Model");
                             render(template, el, data);
                         } else {
-                            console.log("Rendering " + el.attr("id") + " using " + template + " and its view-model " + viewModelInstance.instanceId + ".");
+                            CrossViewJS.CrossViewJS.console.log("Rendering " + el.attr("id") + " using " + template + " and its view-model " + viewModelInstance.instanceId + ".");
                             render(template, el, viewModelInstance.getRenderData());
                         }
                     } catch (e) {
@@ -414,7 +414,7 @@
                 });
             } else if (parentData) {
                 if (el.attr("id")) {
-                    console.log("Rendering " + el.attr("id") + " using " + template + " and parent's data through " + path);
+                    CrossViewJS.CrossViewJS.console.log("Rendering " + el.attr("id") + " using " + template + " and parent's data through " + path);
                 }
 
                 var data;
@@ -431,7 +431,7 @@
                         data = CrossViewJS.traverseJSON(parentData, path);
                     } catch (e) {
                         CrossViewJS.notifyError(el, e);
-                        console.error(parentData);
+                        CrossViewJS.CrossViewJS.console.error(parentData);
                     }
                 }
 
@@ -439,10 +439,10 @@
                     var emptyView = el.attr(CrossViewJS.options.attributes.view.emptyView);
 
                     if (emptyView) {
-                        console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
+                        CrossViewJS.CrossViewJS.console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
                         template = emptyView;
                     } else {
-                        console.log("View " + template + " being ignored because of empty data from path " + path + ".");
+                        CrossViewJS.CrossViewJS.console.log("View " + template + " being ignored because of empty data from path " + path + ".");
                         el.data("crossview-rendering", false);
                         return;
                     }
@@ -450,12 +450,12 @@
 
                 // Use a View-Model, if available.
                 if (!viewModelInstance || withoutViewModel) {
-                    console.log("Rendering " + el.attr("id") + " using " + template + " without a View-Model");
+                    CrossViewJS.CrossViewJS.console.log("Rendering " + el.attr("id") + " using " + template + " without a View-Model");
                     render(template, el, data);
                 } else {
-                    console.log("Setting data to view-model " + viewModelInstance.instanceId + ".");
+                    CrossViewJS.CrossViewJS.console.log("Setting data to view-model " + viewModelInstance.instanceId + ".");
                     viewModelInstance.setData(data);
-                    console.log("Rendering " + el.attr("id") + " using " + template + " and its view-model " + viewModelInstance.instanceId + ".");
+                    CrossViewJS.CrossViewJS.console.log("Rendering " + el.attr("id") + " using " + template + " and its view-model " + viewModelInstance.instanceId + ".");
                     render(template, el, viewModelInstance.getRenderData());
                 }
 
@@ -463,7 +463,7 @@
             } else {
                 if (viewModelInstance) {
                     // Do basic rendering.
-                    console.log("Rendering " + el.attr("id") + " using " + template + " and view-model " + viewModelInstance.instanceId + " and path '" + path + "'.");
+                    CrossViewJS.CrossViewJS.console.log("Rendering " + el.attr("id") + " using " + template + " and view-model " + viewModelInstance.instanceId + " and path '" + path + "'.");
 
                     try {
                         var data = viewModelInstance.getRenderData();
@@ -475,7 +475,7 @@
                             var emptyView = el.attr(CrossViewJS.options.attributes.view.emptyView);
 
                             if (emptyView) {
-                                console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
+                                CrossViewJS.CrossViewJS.console.log("Replacing view " + template + " with view " + emptyView + " for empty data.");
                                 template = emptyView;
                             }
                         }
@@ -485,7 +485,7 @@
                         CrossViewJS.notifyError(el, e);
                     }
                 } else if (!el.crossview("shouldHaveViewModel")) {
-                    console.error("Can't render " + el.attr("id") + " because there is no view-model instanciated.");
+                    CrossViewJS.CrossViewJS.console.error("Can't render " + el.attr("id") + " because there is no view-model instanciated.");
                 }
 
                 el.data("crossview-rendering", false);

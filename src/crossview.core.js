@@ -29,11 +29,11 @@
  */
 var CrossViewJS = window["CrossViewJS"] = {};
 
-if (!window.console) console = {};
-console.log = console.log || function(){};
-console.warn = console.warn || function(){};
-console.error = console.error || function(){};
-console.info = console.info || function(){};
+CrossViewJS.console = window.console || {};
+CrossViewJS.console.log = CrossViewJS.console.log || function(){};
+CrossViewJS.console.warn = CrossViewJS.console.warn || function(){};
+CrossViewJS.console.error = CrossViewJS.console.error || function(){};
+CrossViewJS.console.info = CrossViewJS.console.info || function(){};
 
 (function($) {
 
@@ -88,7 +88,7 @@ console.info = console.info || function(){};
                 throw "Exception not provided"; 
             }
             
-            console.error(exception.stack || exception);
+            CrossViewJS.console.error(exception.stack || exception);
             el.trigger("crossview-error", [ el, exception ]);
         },
     

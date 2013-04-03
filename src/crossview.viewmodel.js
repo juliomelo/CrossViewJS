@@ -87,7 +87,7 @@
 
                 target.empty().addClass(CrossViewJS.options.css.view.fetching);
                 el.crossview("getJSON").success(function (data) {
-                    console.log("Rendering " + targetId + " after command for rendering with JSON.");
+                    CrossViewJS.console.log("Rendering " + targetId + " after command for rendering with JSON.");
                     target.crossview("render", data);
                 }).complete(function () {
                     target.removeClass(CrossViewJS.options.css.view.fetching);
@@ -171,7 +171,7 @@
         if (!viewModel.classes[name]) {
             CrossViewJS.notifyError(el, "View-Model class not found: " + name + ".");
         } else {
-            console.log("Binding " + name + " to " + el.attr("id"));
+            CrossViewJS.console.log("Binding " + name + " to " + el.attr("id"));
 
             var viewModelData = CrossViewJS.options.resources.viewModel[name];
             var instance, instanceId;
@@ -219,14 +219,14 @@
                 // Since we have already instantiated the view-model, try to render its view.
                 var views = el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.withoutViewModel + "=true]):not([" + CrossViewJS.options.attributes.view.lastRendering + "])");
 
-                console.log(views.length + " views found. Rendering...");
+                CrossViewJS.console.log(views.length + " views found. Rendering...");
                 views.removeClass(CrossViewJS.options.css.view.loadingViewModel).crossview("render");
 
                 // Look for remote data.
                 var urls = el.filter("[" + CrossViewJS.options.attributes.fetch.jsonUrl + "]:not([" + CrossViewJS.options.attributes.view.binding + "]):not([" + CrossViewJS.options.attributes.view.withoutViewModel + "=true])")
                     .add($("[" + CrossViewJS.options.attributes.fetch.jsonUrl + "]:not([" + CrossViewJS.options.attributes.view.binding + "]):not([" + CrossViewJS.options.attributes.view.withoutViewModel + "=true])", el));
 
-                console.log(urls.length + " urls found. Fetching...");
+                CrossViewJS.console.log(urls.length + " urls found. Fetching...");
                 urls.removeClass(CrossViewJS.options.css.view.loadingViewModel).crossview("render");
             }
 
@@ -238,7 +238,7 @@
                     }
                 }
             } catch (e) {
-                console.error("Can't run garbage collection: " + e);
+                CrossViewJS.console.error("Can't run garbage collection: " + e);
             }
 
             return instance;
@@ -348,7 +348,7 @@
                 viewModel.binding = true;
             }
 
-            console.log("Finding view-model to bind...");
+            CrossViewJS.console.log("Finding view-model to bind...");
 
             try {
                 var selector = "[" + CrossViewJS.options.attributes.viewModel.binding + "]:not([" + CrossViewJS.options.attributes.viewModel.bindId + "])";
@@ -381,7 +381,7 @@
             var name = $(this).attr(CrossViewJS.options.attributes.viewModel.binding);
 
             if (viewModel.classes[name]) {
-                console.log("Binding View-Model \"" + name + "\" to " + $(this).attr("id"));
+                CrossViewJS.console.log("Binding View-Model \"" + name + "\" to " + $(this).attr("id"));
                 setViewModel($(this), name);
             } else if (CrossViewJS.options.resources.viewModel[name]) {
                 $(this).find("[" + CrossViewJS.options.attributes.view.binding + "]").addClass(CrossViewJS.options.css.view.loadingViewModel);
@@ -395,7 +395,7 @@
                 var viewModelData = CrossViewJS.options.resources.viewModel[name];
 
                 if (viewModelData.initialized) {
-                    console.log("Needing " + name + " view-model that is already initialized but not registered. Waiting...");
+                    CrossViewJS.console.log("Needing " + name + " view-model that is already initialized but not registered. Waiting...");
                     return;
                 }
 
@@ -408,13 +408,13 @@
 
                 if (viewModelData.charset) {
                     ajaxOptions.scriptCharset = viewModelData.charset;
-                    console.log("Using " + ajaxOptions.scriptCharset + " charset for " + viewModelURL + ".");
+                    CrossViewJS.console.log("Using " + ajaxOptions.scriptCharset + " charset for " + viewModelURL + ".");
                 }
 
                 viewModelData.initialized = true;
                 viewModelURL = CrossViewJS.getAbsoluteURL(viewModelURL);
 
-                console.log("Loading javascript for View-Model \"" + name + "\" from " + viewModelURL + ".");
+                CrossViewJS.console.log("Loading javascript for View-Model \"" + name + "\" from " + viewModelURL + ".");
 
                 $.ajax(viewModelURL, ajaxOptions).success(function (data) {
                     var classDefinition = CrossViewJS.traverseJSON(window, name);
@@ -425,7 +425,7 @@
                     registerViewModel(name, classDefinition);
                 }).error(function (x, e) {
                     CrossViewJS.options.resources.viewModel[name] = null;
-                    console.error("Error loading javascript for View-Model \"" + name + "\" from " + viewModelURL + ": " + e + ".");
+                    CrossViewJS.console.error("Error loading javascript for View-Model \"" + name + "\" from " + viewModelURL + ": " + e + ".");
                 }).complete(function () {
                     that.find("." + CrossViewJS.options.css.view.loadingViewModel).each(function () {
                         if (!shouldHaveViewModel($(this)))
@@ -451,28 +451,28 @@
     function runGarbageCollection() {
         var free = [];
 
-        console.log("Running garbage collection from CrossViewJS. (" + viewModel.bindidSeq + " slots)");
+        CrossViewJS.console.log("Running garbage collection from CrossViewJS. (" + viewModel.bindidSeq + " slots)");
 
         for (var i = 1; i <= viewModel.bindidSeq; i++) {
             if (viewModel.instances[i] && !$("[" + CrossViewJS.options.attributes.viewModel.bindId + "=" + i + "]").length) {
-                console.log("Releasing view-model instance " + i + ".");
+                CrossViewJS.console.log("Releasing view-model instance " + i + ".");
                 viewModel.instances[i] = null;
                 free.push(i);
             } else if (!viewModel.instances[i]) {
-                console.log("Slot " + i + " is free.");
+                CrossViewJS.console.log("Slot " + i + " is free.");
                 free.push(i);
             }
         }
 
         if (free.length > CrossViewJS.options.viewModel.compactThreshold) {
-            console.log("Compacting instances...");
+            CrossViewJS.console.log("Compacting instances...");
 
             while (free.length) {
                 var idx = free.pop();
 
                 // If idx is from the last element, just remove it.
                 if (idx != viewModel.bindidSeq) {
-                    console.log("Moving instance " + viewModel.bindidSeq + " to " + idx + ".");
+                    CrossViewJS.console.log("Moving instance " + viewModel.bindidSeq + " to " + idx + ".");
                     viewModel.instances[idx] = viewModel.instances[viewModel.bindidSeq];
                     $("[" + CrossViewJS.options.attributes.viewModel.bindId + "=" + viewModel.bindidSeq + "]")
                         .attr(CrossViewJS.options.attributes.viewModel.bindId, idx);
