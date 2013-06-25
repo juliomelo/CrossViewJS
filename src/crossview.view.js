@@ -180,18 +180,17 @@
             el.data("crossview-rendering", true);
             el.addClass(CrossViewJS.options.css.view.renderingView);
 
-            requireTemplate(template, function () {
+            requireTemplate(template, function() {
+                // Convert to array if it isn't
+                if (!data) {
+                    data = [null];
+                } else if (!$.isArray(data)) {
+                    data = [data];
+                }
+
                 if (el.attr("id")) {
                     CrossViewJS.console.log("Rendering " + el.attr("id") + " using " + template + " with following data of size " + (!data ? 0 : data.length));
                 }
-
-                if (!data) {
-                    data = [null];
-                } else if (typeof (data.length) == "undefined" || typeof (data) != "object") {
-                    data = [data];
-                } /*else if (!data.length) {
-                    data = [null];
-                }*/
 
                 el.empty();
 
@@ -201,7 +200,7 @@
                     var content = null;
 
                     try {
-                        content = CrossViewJS.template.render(template, data[i]);
+                        content = CrossViewJS.template.render(template, data[i], { parent : data, index : i });
                         content.appendTo(el);
 
                         requestBinding = requestBinding.add(content.find("[" + CrossViewJS.options.attributes.viewModel.binding + "]"))
@@ -249,8 +248,7 @@
                 requestBinding.crossview("bindViewModel");
 
                 // Elements that need to render must be filtered since it may be changed by crossview-rendered event handlers.
-                toRender.filter("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])")
-                    .each(renderView).removeData("crossview-parent-data");
+                toRender.filter("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").each(renderView);
 
                 el.data("crossview-rendering", false);
             });
@@ -283,8 +281,6 @@
         
         el.data("crossview-rendering", true);
 
-        var temp = el.data("crossview-view-temp");
-        var template = temp ? temp.template : el.attr(CrossViewJS.options.attributes.view.binding);
         var parentData = temp ? temp.data : el.data("crossview-parent-data");
 
         requireTemplate(template, function () {
@@ -316,6 +312,8 @@
                 CrossViewJS.viewModel.requestBinding(el);
                 return;
             }
+
+            el.removeData("crossview-parent-data");
 
             var path = el.attr(CrossViewJS.options.attributes.fetch.jsonPath);
             var viewModelInstance = el.crossview("getViewModel");
@@ -424,9 +422,9 @@
                     el.removeData("crossview-view-temp");
                     data = temp.data;
                 } else {
-		            if (temp) {
-                                el.removeData("crossview-view-temp");
-		            }
+                    if (temp) {
+                        el.removeData("crossview-view-temp");
+                    }
                     try {
                         data = CrossViewJS.traverseJSON(parentData, path);
                     } catch (e) {

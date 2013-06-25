@@ -68,7 +68,7 @@
         if (!mode)
             mode = "default";
         
-        options = $.extend(null, CrossViewJS.options.ajaxDefaults, { dataType : "json" }, options);
+        options = $.extend(null, CrossViewJS.options.ajaxDefaults, options);
         
         url = CrossViewJS.getAbsoluteURL(url);
         
