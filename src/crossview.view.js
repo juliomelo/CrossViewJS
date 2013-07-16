@@ -195,12 +195,13 @@
                 el.empty();
 
                 var requestBinding = $([]);
+                var viewModel = el.crossview("getViewModel");
 
                 for (var i = 0; i < data.length; i++) {
                     var content = null;
 
                     try {
-                        content = CrossViewJS.template.render(template, data[i], { parent : data, index : i });
+                        content = CrossViewJS.template.render(template, data[i], {parent: data, index: i, viewModel: viewModel});
                         content.appendTo(el);
 
                         requestBinding = requestBinding.add(content.find("[" + CrossViewJS.options.attributes.viewModel.binding + "]"))
