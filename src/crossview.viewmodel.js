@@ -492,7 +492,7 @@
         getViewModel: function () { return getViewModel(this); },
         bindViewModel: function () { this.each(bindViewModel); },
         setViewModelData: function (data) {
-            this.each(function () { getViewModel($(this)).setData(data); });
+            this.each(function () { getViewModel($(this)).setData(data, $(this)); });
         }
     });
 

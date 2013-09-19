@@ -81,7 +81,7 @@
                     };
                     
                     if (instance.setData === CrossViewJS.options.viewModel.instancePrototype.setData) {
-                        instance.setData = function(data) {
+                        instance.setData = function(data, el) {
                             /* If it is not yet done, check view-model for already mapped properties,
                              * to make them updatable from knockout mapping plugin.
                              */

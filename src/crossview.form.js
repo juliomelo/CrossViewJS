@@ -302,7 +302,7 @@
                 if (!viewModelInstance) {
                      renderContext.target.crossview("render", renderContext.data, renderContext.targetView);
                 } else {
-                     viewModelInstance.setData(renderContext.data);
+                     viewModelInstance.setData(renderContext.data, renderContext.target);
                      renderContext.target.crossview("render");
                 }
             });
@@ -322,7 +322,7 @@
                     viewModelInstance = setViewModel(renderContext.target, "$root");
                 }
 
-                viewModelInstance.setData(renderContext.data);
+                viewModelInstance.setData(renderContext.data, renderContext.target);
                 renderContext.target.crossview("render");
             });
     

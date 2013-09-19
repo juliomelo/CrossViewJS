@@ -239,7 +239,7 @@
                 try {
                     el.trigger("crossview-rendered", [data, template]);
                 } catch (e) {
-                    CrossViewJS.console.error('Error invoking "crossview-rendered" event for ' + el.attr("id") + ": " + e + ".");
+                    CrossViewJS.console.error('Error invoking "crossview-rendered" event for ' + el.attr("id") + ". Template: " + template + "." + e + ".", data);
                     CrossViewJS.notifyError(el, e);
                 }
 
@@ -377,7 +377,7 @@
 
                         if (viewModelInstance && !withoutViewModel) {
                             CrossViewJS.console.log("Setting data to view-model " + viewModelInstance.instanceId + ".");
-                            viewModelInstance.setData(data);
+                            viewModelInstance.setData(data, el);
                         }
 
                         if (!data || data.length === 0) {
@@ -453,7 +453,7 @@
                     render(template, el, data);
                 } else {
                     CrossViewJS.console.log("Setting data to view-model " + viewModelInstance.instanceId + ".");
-                    viewModelInstance.setData(data);
+                    viewModelInstance.setData(data, el);
                     CrossViewJS.console.log("Rendering " + el.attr("id") + " using " + template + " and its view-model " + viewModelInstance.instanceId + ".");
                     render(template, el, viewModelInstance.getRenderData());
                 }
