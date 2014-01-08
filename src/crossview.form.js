@@ -65,12 +65,10 @@
             }
             
             if (!targets[i].view) {
-                var error = 'Undefined view for target element "' + targetsIds[i] + '".';
-                CrossViewJS.notifyError(targets[i].el, error);
-                return false;
-            }
-            
-            CrossViewJS.requireTemplate(targets[i].view);
+                CrossViewJS.console.warn('Undefined view for target element "' + targetsIds[i] + '".');
+            } else {
+                CrossViewJS.requireTemplate(targets[i].view);
+		    }
         }
         
         // Do rendering.
@@ -326,6 +324,14 @@
                 renderContext.target.crossview("render");
             });
     
+	/**
+	 * Rerender the view.
+	 */
+	CrossViewJS.form.registerRenderMode(
+			"update", function(renderContext) {
+				renderContext.target.crossview("render");
+			});
+			
     CrossViewJS.form.submit = submitForm;
     
 })(jQuery);

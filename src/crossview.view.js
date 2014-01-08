@@ -53,7 +53,8 @@
                     withoutDataPropagation: "data-view-without-datapropagation",
                     className: "data-view-name",
                     emptyView: "data-view-empty",
-                    data: "data-view-data"
+                    data: "data-view-data",
+                    innerTemplate: "data-view-innertemplate"
                 }
             },
 
@@ -115,7 +116,6 @@
             $.ajax(CrossViewJS.getAbsoluteURL(CrossViewJS.options.resources.view[template]), options).success(function (data) {
                 try {
                     CrossViewJS.console.log("Template " + template + " loaded from " + CrossViewJS.options.resources.view[template] + ". (" + view.templates[template].callback.length + " callback(s) waiting)");
-
                     CrossViewJS.template.setTemplate(template, data);
                 } catch (e) {
                     CrossViewJS.notifyError($("[" + CrossViewJS.options.attributes.view.binding + "='" + template + "']"), "Can't compile template " + template + ": " + e + "\n" + data);
@@ -192,16 +192,26 @@
                     CrossViewJS.console.log("Rendering " + el.attr("id") + " using " + template + " with following data of size " + (!data ? 0 : data.length));
                 }
 
-                el.empty();
-
                 var requestBinding = $([]);
                 var viewModel = el.crossview("getViewModel");
-
+                var compiledTemplate = !template && el.data("data-template-code") ? CrossViewJS.template.compile(el.data("data-template-code")) : null;
+				
+                el.empty();
+				
                 for (var i = 0; i < data.length; i++) {
                     var content = null;
 
                     try {
-                        content = CrossViewJS.template.render(template, data[i], {parent: data, index: i, viewModel: viewModel});
+						var itemData = {parent: data, index: i, viewModel: viewModel};
+						
+						if (template) {
+							content = CrossViewJS.template.render(template, data[i] || {}, itemData);
+						} else if (compiledTemplate) {
+							content = CrossViewJS.template.renderCompiled(compiledTemplate, data[i] || {}, itemData);
+						} else {
+							throw "How should I render element without template?";
+						}
+						
                         content.appendTo(el);
 
                         requestBinding = requestBinding.add(content.find("[" + CrossViewJS.options.attributes.viewModel.binding + "]"))
@@ -276,9 +286,13 @@
         var temp = el.data("crossview-view-temp");
         var template = temp ? temp.template : el.attr(CrossViewJS.options.attributes.view.binding);
         
-        if (!template) {
+        if (!template && !el.data("data-template-code") && el.attr(CrossViewJS.options.attributes.view.innerTemplate) !== "true") {
             return;
         }
+		
+		if (!template && !el.data("data-template-code") && el.attr(CrossViewJS.options.attributes.view.innerTemplate) === "true") {
+			el.data("data-template-code", el.html());
+		}
         
         el.data("crossview-rendering", true);
 
@@ -496,7 +510,10 @@
         $("[" + CrossViewJS.options.attributes.view.binding +
             "][" + CrossViewJS.options.attributes.fetch.jsonUrl + 
             "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "]):not(." + 
-            CrossViewJS.options.css.view.fetching + "):not(." + CrossViewJS.options.css.view.error + ")").each(renderView);
+            CrossViewJS.options.css.view.fetching + "):not(." + CrossViewJS.options.css.view.error + ")")
+			.add("[" + CrossViewJS.options.attributes.fetch.jsonUrl + "][" + CrossViewJS.options.attributes.view.innerTemplate + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "]):not(." + 
+            CrossViewJS.options.css.view.fetching + "):not(." + CrossViewJS.options.css.view.error + ")")
+			.each(renderView);
     }
 
     /**

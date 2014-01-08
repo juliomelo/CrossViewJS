@@ -38,15 +38,28 @@
         // jsrender - https://github.com/BorisMoore/jsrender
         if ($.templates && $.render) {
             CrossViewJS.template = {
-                    setTemplate : $.templates,
-                    render : function(template, data) { return $($.render[template](data)); }
+					templates : {},
+                    setTemplate : function(template, templateCode) { 
+						this.templates[template] = $.templates(templateCode);
+					},
+                    render : function(template, data) { return $(this.templates[template](data)); },
+					renderDirectly : function(templateCode, data) {
+						return $($.templates(templateCode)(data));
+					},
+					compile : function(templateCode) { return $.templates(templateCode); },
+					renderCompiled : function(compiledTemplateCode, data) {
+						return $(compiledTemplateCode(data));
+					}
             };
         }
         // tmpl (beta) -
         else if ($.template && !$.render && $.tmpl) {
             CrossViewJS.template = {
                     setTemplate : $.template,
-                    render : $.tmpl
+                    render : $.tmpl,
+					renderDirectly : $.tmpl,
+					compile : function(templateCode) { return templateCode; },
+					renderCompiled : $.tmpl
             };
         }
     }
@@ -54,8 +67,9 @@
     $(function() {
         setupTemplateEngine();
 
-        if (!CrossViewJS.template)
+        if (!CrossViewJS.template) {
             setTimeout(setupTemplateEngine, 150);
+		}
     });
 
 })(jQuery);
