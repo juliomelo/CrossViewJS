@@ -240,7 +240,8 @@
                     el.find("[" + CrossViewJS.options.attributes.fetch.textUrl + "]").crossview("loadText");
                     el.find("[" + CrossViewJS.options.attributes.fetch.htmlUrl + "]").crossview("loadHTML");
 
-                    toRender = el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])");
+                    toRender = el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])")
+                        .add("[" + CrossViewJS.options.attributes.view.innerTemplate + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])");
                 } catch (e) {
                     CrossViewJS.console.error('Error looking for rendered children items.');
                     CrossViewJS.notifyError(el, e);
@@ -260,6 +261,7 @@
 
                 // Elements that need to render must be filtered since it may be changed by crossview-rendered event handlers.
                 toRender.filter("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").each(renderView);
+                toRender.filter("[" + CrossViewJS.options.attributes.view.innerTemplate + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").each(renderView);
 
                 el.data("crossview-rendering", false);
             });
