@@ -292,10 +292,12 @@
             return;
         }
 		
-		if (!template && !el.data("data-template-code") && el.attr(CrossViewJS.options.attributes.view.innerTemplate) === "true") {
-			el.data("data-template-code", el.html());
-		}
-        
+        if (!template && !el.data("data-template-code") && el.attr(CrossViewJS.options.attributes.view.innerTemplate) === "true") {
+            el.data("data-template-code", el.html()).empty();
+        } else if (!template && el.attr(CrossViewJS.options.attributes.view.innerTemplate) === "true") {
+            el.empty();
+        }
+
         el.data("crossview-rendering", true);
 
         var parentData = temp ? temp.data : el.data("crossview-parent-data");
