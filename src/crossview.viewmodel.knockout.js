@@ -28,47 +28,137 @@
  * SOFTWARE.
  */
 (function($) {
-    function applyBindings(target, viewModel) {
-        var koBindings = $("[data-bind]", target);
-                    
-        koBindings.each(function() {
-            var binding = $(this), backup;
-                        
-            // Ensure that view-model is correct.
-            if (binding.crossview("getViewModel") === viewModel) {
+    CrossViewJS.knockout = {
+        applyBindings: function(viewModel, element) {
+            var backup, preventedBinding;
+            
+            if ($(element).data("crossview-knockout.bind") === viewModel.instanceId) {
+                return;
+            }
+            
+            CrossViewJS.console.log("Applying knockout bindings to view-model " + viewModel.instanceId);
+            
+            try {
                 try {
-				    try {
-					    ko.applyBindings(viewModel, this);
-					} catch (e) {
-						// Since KnockoutJS 3.0.0, we cannot reapply bindings without cleaning node.
+                    ko.applyBindings(viewModel, element);
+                    $(element).find("[" + CrossViewJS.options.attributes.viewModel.bindId + "]").andSelf().data("crossview-knockout.bind", viewModel.instanceId);
+                } catch (e) {
+                    // Let's remove any other binded child.
+                    preventedBinding = preventBinding(element);
+                    
+                    try {
+                        // Since KnockoutJS 3.0.0, we cannot reapply bindings without cleaning node.
                         if (ko.cleanNode) {
                             backup = ko.utils.domNodeDisposal.cleanExternalData;
-							// Prevent cleaning jQuery data.
-							ko.utils.domNodeDisposal.cleanExternalData = function() {};
-							try {
-								ko.cleanNode(this);
-							} finally {
-								ko.utils.domNodeDisposal.cleanExternalData = backup;
-							}
+                            // Prevent cleaning jQuery data.
+                            ko.utils.domNodeDisposal.cleanExternalData = function() {
+                            };
+                            try {
+                                ko.cleanNode(element);
+                            } finally {
+                                ko.utils.domNodeDisposal.cleanExternalData = backup;
+                            }
                         }
-                        ko.applyBindings(viewModel, this);
-				    }
-                } catch (e) {
-                    CrossViewJS.console.error("Error applying knockout bindings to view-model.");
-                    CrossViewJS.notifyError(binding, e);
-                    CrossViewJS.console.error(viewModel);
+                        ko.applyBindings(viewModel, element);
+                        $(element).find("[" + CrossViewJS.options.attributes.viewModel.bindId + "]").andSelf().data("crossview-knockout.bind", viewModel.instanceId);
+                    } finally {
+                        restoreElements(preventedBinding);
+                    }
                 }
+            } catch (e) {
+                CrossViewJS.console.error("Error applying knockout bindings to view-model " + viewModel.instanceId);
+                CrossViewJS.notifyError($(element), e);
+                CrossViewJS.console.error(viewModel);
             }
-        });        
+
+            $("[data-bind*=foreach] [" + CrossViewJS.options.attributes.viewModel.binding + "]", element).each(function() {
+                if (!$(this).data("crossview-knockout.bind")) {
+                    $(this).data("crossview-knockout.bind", viewModel.instanceId);
+                }
+            });
+        }
+    };
+    
+    function postponedRendering(element) {
+        if (!$(element).data("crossview-knockout.rendering")) {
+            $(element).empty().data("crossview-knockout.rendering", true);
+
+            setTimeout(function() {
+                $(element).removeData("crossview-knockout.rendering");
+                $(element).crossview("render");
+            }, 1);
+        }
     }
     
+    /**
+     * Remove from DOM elements that have already binded to knockout from a
+     * root element.
+     * 
+     * @param {type} element Root element.
+     * @returns {Array} Data used to future restore.
+     */
+    function preventBinding(element) {
+        var protected = [];
+        
+        $("[" + CrossViewJS.options.attributes.viewModel.bindId + "]", element).each(function() {
+            var el = $(this);
+            if (el.data("crossview-knockout.bind")) {
+                protected.push({ domElement: this, parent: el.parent(), prev: el.prev() });
+            }
+        });
+        
+        $(protected).each(function() {
+            CrossViewJS.console.debug("Protecting ", this);
+            $(this.domElement).remove();
+        });
+        
+        CrossViewJS.console.log(protected.length + " elements protected");
+        
+        return protected;
+    }
+    
+    /**
+     * Restore elements removed from binding prevention.
+     * 
+     * @param {type} protected Data generated by preventBinding function.
+     */
+    function restoreElements(protected) {
+        var i, item;
+        
+        CrossViewJS.console.log("Restoring " + protected.length + " elements");
+        
+        for (i = 0; i < protected.length; i++) {
+            item = protected[i];
+            if (item.prev) {
+                item.prev.after(item.domElement);
+            } else if (item.parent.children().length === 0) {
+                item.parent.append(item.domElement);
+            } else {
+                item.parent.children(":first").before(item.domElement);
+            }
+        }
+    }
+
+    function applyBindings(target, viewModel) {
+        var koBindings = $("[data-bind]", target);
+
+        koBindings.each(function() {
+            var binding = $(this);
+
+            // Ensure that view-model is correct.
+            if (binding.crossview("getViewModel") === viewModel) {
+                CrossViewJS.knockout.applyBindings(viewModel, this);
+            }
+        });
+    }
+
     if (window.ko) {
         CrossViewJS.console.log("Started CrossViewJS integration with Knockout.");
 
         if (CrossViewJS.options.viewModel.useKnockout !== false) {
             CrossViewJS.options.viewModel.useKnockout = true;
         }
-        
+
         if (CrossViewJS.options.viewModel.useKnockoutMapping !== false) {
             CrossViewJS.options.viewModel.useKnockoutMapping = true;
         }
@@ -80,21 +170,21 @@
         $(document).on("crossview-binded", function(e, el, instance) {
             if (instance.useKnockout || (instance.useKnockout == null && CrossViewJS.options.viewModel.useKnockout)) {
 
-                $(e.target).on("crossview-rendered", function(e2) {
-                    applyBindings(e2.target, instance);
+                el.on("crossview-rendered", function(e2) {
+                    applyBindings($(e2.target), instance);
                 });
-                
-                applyBindings(e.target, instance);
-       
-                if (ko.mapping && (instance.useKnockoutMapping || (instance.useKnockoutMapping == null && CrossViewJS.options.viewModel.useKnockoutMapping))) { 
+
+                applyBindings(el, instance);
+
+                if (ko.mapping && (instance.useKnockoutMapping || (instance.useKnockoutMapping == null && CrossViewJS.options.viewModel.useKnockoutMapping))) {
                     instance.__ko_mapping__ = {
-                        copy : [],
-                        ignore : [],
-                        include : [ "_destroy" ],
-                        mappedProperties : {},
-                        __crossview_alreadyMapped__ : false
+                        copy: [],
+                        ignore: [],
+                        include: ["_destroy"],
+                        mappedProperties: {},
+                        __crossview_alreadyMapped__: false
                     };
-                    
+
                     if (instance.setData === CrossViewJS.options.viewModel.instancePrototype.setData) {
                         instance.setData = function(data, el) {
                             /* If it is not yet done, check view-model for already mapped properties,
@@ -102,27 +192,27 @@
                              */
                             if (!this.__ko_mapping__.__crossview_alreadyMapped__) {
                                 for (var field in data) {
-                                    if (typeof(this[field]) == "function") {
+                                    if (typeof (this[field]) == "function") {
                                         this.__ko_mapping__.mappedProperties[field] = true;
                                     }
                                 }
-                                
+
                                 this.__ko_mapping__.__crossview_alreadyMapped__ = true;
                             }
-                            
+
                             var mapped = ko.mapping.fromJS(data, this);
-                            
+
                             // Check if mapped object is the same view-model that we provided.
                             if (mapped != this) {
                                 CrossViewJS.console.error("Knockout Mapping plugin failed to update view-model.", this);
                             }
-                            
+
                             if (!this.useKnockoutOnTemplate) {
                                 CrossViewJS.options.viewModel.instancePrototype.setData.apply(this, arguments);
                             }
                         };
                     }
-                
+
                     if (instance.useKnockoutOnTemplate && instance.getRenderData === CrossViewJS.options.viewModel.instancePrototype.getRenderData) {
                         instance.getRenderData = function() {
                             return this;
@@ -136,41 +226,44 @@
         ko.bindingHandlers.view = {
             update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
                 var value = valueAccessor();
-                
+
                 if (typeof value === "function") {
                     value = value();
                 }
-                
+
                 if ($(element).attr(CrossViewJS.options.attributes.view.binding) != value) {
-                    $(element).attr(CrossViewJS.options.attributes.view.binding, value).crossview("render");
+                    $(element).attr(CrossViewJS.options.attributes.view.binding, value);
+                    postponedRendering(element);
                 }
             }
         };
-        
+
         ko.bindingHandlers.jsonUrl = {
             update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
                 var value = valueAccessor();
-                
+
                 if (typeof value === "function") {
                     value = value();
                 }
-                
+
                 if ($(element).attr(CrossViewJS.options.attributes.fetch.jsonUrl) != value) {
-                    $(element).attr(CrossViewJS.options.attributes.fetch.jsonUrl, value).crossview("render");
+                    $(element).attr(CrossViewJS.options.attributes.fetch.jsonUrl, value);
+                    postponedRendering(element);
                 }
             }
         };
-        
+
         ko.bindingHandlers.jsonPath = {
             update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
                 var value = valueAccessor();
-                
+
                 if (typeof value === "function") {
                     value = value();
                 }
-                
+
                 if ($(element).attr(CrossViewJS.options.attributes.fetch.jsonPath) != value) {
-                    $(element).attr(CrossViewJS.options.attributes.fetch.jsonPath, value).crossview("render");
+                    $(element).attr(CrossViewJS.options.attributes.fetch.jsonPath, value);
+                    postponedRendering(element);
                 }
             }
         };
@@ -178,35 +271,37 @@
         ko.bindingHandlers.jsonData = {
             update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
                 var value = valueAccessor();
-                
+
                 if (typeof value === "function") {
                     value = value();
                 }
-                
+
                 if ($(element).attr(CrossViewJS.options.attributes.view.data) != value) {
-                    if (typeof(value) === "string") {
-                        $(element).attr(CrossViewJS.options.attributes.view.data, value).crossview("render");
+                    if (typeof (value) === "string") {
+                        $(element).attr(CrossViewJS.options.attributes.view.data, value);
+                        postponedRendering(element);
                     } else {
-                        $(element).attr(CrossViewJS.options.attributes.view.data, JSON.stringify(value)).crossview("render");
+                        $(element).attr(CrossViewJS.options.attributes.view.data, JSON.stringify(value));
+                        postponedRendering(element);
                     }
                 }
             }
         };
-        
+
         ko.bindingHandlers.viewModelData = {
             update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
                 var value = valueAccessor(), viewModel;
-                
+
                 if (typeof value === "function") {
                     value = value();
                 }
-                
+
                 if ($(element).attr(CrossViewJS.options.attributes.view.data) != value) {
                     viewModel = $(element).crossview("getViewModel");
-                    
+
                     if (viewModel) {
                         viewModel.setData(value);
-                        $(element).crossview("render");
+                        postponedRendering(element);
                     } else {
                         $(element).one("crossview-binded", function(ev, el, viewModel) {
                             viewModel.setData(value);
@@ -219,13 +314,14 @@
         ko.bindingHandlers.emptyView = {
             update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
                 var value = valueAccessor();
-                
+
                 if (typeof value === "function") {
                     value = value();
                 }
-                
+
                 if ($(element).attr(CrossViewJS.options.attributes.view.emptyView) != value) {
-                    $(element).attr(CrossViewJS.options.attributes.view.emptyView, value).crossview("render");
+                    $(element).attr(CrossViewJS.options.attributes.view.emptyView, value);
+                    postponedRendering(element);
                 }
             }
         };
