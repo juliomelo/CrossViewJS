@@ -211,6 +211,11 @@
                                 CrossViewJS.options.viewModel.instancePrototype.setData.apply(this, arguments);
                             }
                         };
+                        
+                        // Is there already a data?
+                        if (instance.data) {
+                            instance.setData(instance.data, el);
+                        }
                     }
 
                     if (instance.useKnockoutOnTemplate && instance.getRenderData === CrossViewJS.options.viewModel.instancePrototype.getRenderData) {
@@ -233,6 +238,22 @@
 
                 if ($(element).attr(CrossViewJS.options.attributes.view.binding) != value) {
                     $(element).attr(CrossViewJS.options.attributes.view.binding, value);
+                    postponedRendering(element);
+                }
+            }
+        };
+        
+        ko.bindingHandlers.viewModel = {
+            update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
+                var value = valueAccessor();
+
+                if (typeof value === "function") {
+                    value = value();
+                }
+
+                if ($(element).attr(CrossViewJS.options.attributes.viewModel.binding) != value) {
+                    $(element).attr(CrossViewJS.options.attributes.viewModel.binding, value);
+                    $(element).removeAttr(CrossViewJS.options.attributes.viewModel.bindId);
                     postponedRendering(element);
                 }
             }
