@@ -7,7 +7,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2011 Júlio César e Melo
+ * Copyright (c) 2011 Jï¿½lio Cï¿½sar e Melo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -80,12 +80,29 @@
     };
     
     function postponedRendering(element) {
-        if (!$(element).data("crossview-knockout.rendering")) {
-            $(element).empty().data("crossview-knockout.rendering", true);
+        var el = $(element);
+        
+        if (!el.data("crossview-knockout.rendering")) {
+            var val = el.val();
+            
+            el.empty().data("crossview-knockout.rendering", true);
 
             setTimeout(function() {
-                $(element).removeData("crossview-knockout.rendering");
-                $(element).crossview("render");
+                el.removeData("crossview-knockout.rendering");
+                
+                if (el.is("select")) {
+                    /* If this is a select and is being rendered,
+                     * its value option may not exist before rendering.
+                     * If so, let's reset the value after rendering.
+                     */
+                    el.one("crossview-rendered", function() {
+                        if (el.val() !== val) {
+                            el.val(val);
+                        }
+                    });
+                }
+                
+                el.crossview("render");
             }, 1);
         }
     }
