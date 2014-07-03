@@ -41,7 +41,11 @@
             try {
                 try {
                     ko.applyBindings(viewModel, element);
-                    $(element).find("[" + CrossViewJS.options.attributes.viewModel.bindId + "]").andSelf().data("crossview-knockout.bind", viewModel.instanceId);
+                    $(element).find("[" + CrossViewJS.options.attributes.viewModel.bindId + "]")
+                            .filter(function() {
+                                // Exclude children that is being rendered.
+                                return $(this).data("crossview-rendering") !== true;
+                            }).andSelf().data("crossview-knockout.bind", viewModel.instanceId);
                 } catch (e) {
                     // Let's remove any other binded child.
                     preventedBinding = preventBinding(element);
