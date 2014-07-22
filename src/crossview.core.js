@@ -7,7 +7,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2011 Júlio César e Melo
+ * Copyright (c) 2011 Jï¿½lio Cï¿½sar e Melo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -212,8 +212,9 @@ CrossViewJS.console.info = CrossViewJS.console.info || function(){};
                         obj[name] = [obj[name]];
                     }
                     obj[name].push(this.value || '');
-		} else if ($("[name='" + this.name + "']", container).attr("data-json-force-array") == "true") {
-		    obj[name] = [this.value || ''];
+                } else if (container.filter("[name='" + this.name + "']").attr("data-json-force-array") == "true"
+                    || $("[name='" + this.name + "']", container).attr("data-json-force-array") == "true") {
+                    obj[name] = [this.value || ''];
                 } else {
                     obj[name] = this.value || '';
                 }
