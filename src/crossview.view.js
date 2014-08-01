@@ -7,7 +7,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2011 Júlio César e Melo
+ * Copyright (c) 2011 JÃºlio CÃ©sar e Melo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -501,8 +501,10 @@
                     } catch (e) {
                         CrossViewJS.notifyError(el, e);
                     }
-                } else if (!el.crossview("shouldHaveViewModel")) {
+                } else if (el.crossview("shouldHaveViewModel")) {
                     CrossViewJS.console.error("Can't render " + el.attr("id") + " because there is no view-model instanciated.");
+                } else {
+                	render(template, el, null);
                 }
 
                 el.data("crossview-rendering", false);
