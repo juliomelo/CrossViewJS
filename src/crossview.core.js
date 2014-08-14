@@ -84,11 +84,10 @@ CrossViewJS.console.info = CrossViewJS.console.info || function(){};
             el.addClass(constants.css.error);
             el.attr(constants.attributes.error, exception);
     
-            if (!exception) {
-                throw "Exception not provided"; 
+            if (exception) {
+                CrossViewJS.console.error(exception.stack || exception);
             }
             
-            CrossViewJS.console.error(exception.stack || exception);
             el.trigger("crossview-error", [ el, exception ]);
         },
     

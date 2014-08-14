@@ -5,7 +5,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2011 JÃºlio CÃ©sar e Melo
+ * Copyright (c) 2011 Júlio César e Melo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -164,15 +164,22 @@
                     }
                 })
                 .error(function(x, e) {
-                    CrossViewJS.notifyError(form, e);
-                    
+                    if (!form.attr(CrossViewJS.options.attributes.onSubmissionFail)) {
+                        CrossViewJS.notifyError(form, e);
+                    }
+                
                     if (render)
                         $(targets).each(function() {
                             renderData.target.removeClass(CrossViewJS.options.css.view.fetching);
-                            CrossViewJS.notifyError(this.el, e);
+                            if (!form.attr(CrossViewJS.options.attributes.onSubmissionFail)) {
+                                CrossViewJS.notifyError(this.el, e);
+                            }
                         });
-                    else if (viewModel.container)
+                    else if (viewModel.container) {
                         viewModel.container.removeClass(CrossViewJS.options.css.view.fetching);
+                    }
+                    
+                    form.trigger("crossview-submissionFailed", arguments);
                 }).complete(function() {
 		    form.removeClass(CrossViewJS.options.css.view.fetching);
 		});

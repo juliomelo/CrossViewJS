@@ -31,7 +31,8 @@
 (function ($) {
     $.extend(CrossViewJS.options.attributes, {
         command: "data-command",
-        beforeCommandSubmission: "data-command-before-submission"
+        beforeCommandSubmission: "data-command-before-submission",
+        onSubmissionFail: "data-command-submission-fail"
     });
 
     /**
@@ -43,6 +44,7 @@
         $(document).on("click", "a[" + CrossViewJS.options.attributes.command + "]", executeCommand);
         $(document).on("click", "button[" + CrossViewJS.options.attributes.command + "]", executeCommand);
         $(document).on("submit", "form", executeSubmitCommand);
+        $(document).on("crossview-submissionFailed", "form", executeSubmissionFailedCommand);
         $(document).on("change", "input[" + CrossViewJS.options.attributes.command + "]", executeCommand);
         $(document).on("change", "select[" + CrossViewJS.options.attributes.command + "]", executeCommand);
     }
@@ -67,6 +69,17 @@
             });
 
             return false;
+        } else {
+            return true;
+        }
+    }
+    
+    function executeSubmissionFailedCommand(event, args) {
+        var form = $(this);
+        var onSubmissionFail = form.attr(CrossViewJS.options.attributes.onSubmissionFail);
+
+        if (onSubmissionFail) {
+            return invokeCommand(form, onSubmissionFail, args);
         } else {
             return true;
         }

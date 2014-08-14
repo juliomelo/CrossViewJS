@@ -282,14 +282,14 @@
 
         ko.bindingHandlers.jsonUrl = {
             update: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-                var value = valueAccessor();
+                var value = valueAccessor(), el = $(element);
 
                 if (typeof value === "function") {
                     value = value();
                 }
 
-                if ($(element).attr(CrossViewJS.options.attributes.fetch.jsonUrl) != value) {
-                    $(element).attr(CrossViewJS.options.attributes.fetch.jsonUrl, value);
+                if (el.attr(CrossViewJS.options.attributes.fetch.jsonUrl) != value) {
+                    el.attr(CrossViewJS.options.attributes.fetch.jsonUrl, value);
                     postponedRendering(element);
                 }
             }
