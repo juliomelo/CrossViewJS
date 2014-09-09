@@ -99,11 +99,18 @@
                      * its value option may not exist before rendering.
                      * If so, let's reset the value after rendering.
                      */
-                    el.one("crossview-rendered", function() {
-                        if (el.val() !== val) {
-                            el.val(val);
+                    function setValue() {
+                        if (el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").length === 0
+                            && el.find("[" + CrossViewJS.options.attributes.view.innerTemplate + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").length === 0) {
+                            if (el.val() !== val) {
+                                el.val(val);
+                            }
+                        } else {
+                            el.one("crossview-rendered", setValue);
                         }
-                    });
+                    }
+                     
+                    el.one("crossview-rendered", setValue);
                 }
                 
                 el.crossview("render");
