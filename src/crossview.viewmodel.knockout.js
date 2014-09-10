@@ -39,6 +39,14 @@
             CrossViewJS.console.log("Applying knockout bindings to view-model " + viewModel.instanceId);
             
             try {
+                if ($(element).is("select[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])")) {
+                    postponedRendering($(element));
+                }
+                
+                $("select[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])", element).each(function() {
+                    postponedRendering($(this));
+                });
+                
                 try {
                     ko.applyBindings(viewModel, element);
                     $(element).find("[" + CrossViewJS.options.attributes.viewModel.bindId + "]")
@@ -88,6 +96,10 @@
         
         if (!el.data("crossview-knockout.rendering")) {
             var val = el.val();
+            
+            if (!val) {
+                return;
+            }
             
             el.empty().data("crossview-knockout.rendering", true);
 
