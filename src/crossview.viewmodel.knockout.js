@@ -115,7 +115,7 @@
                         if (el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").length === 0
                             && el.find("[" + CrossViewJS.options.attributes.view.innerTemplate + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").length === 0) {
                             if (el.val() !== val) {
-                                el.val(val);
+                                el.val(val).change();
                             }
                         } else {
                             el.one("crossview-rendered", setValue);
