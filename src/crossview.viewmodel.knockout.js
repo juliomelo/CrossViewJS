@@ -7,7 +7,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2011 J�lio C�sar e Melo
+ * Copyright (c) 2011 Júlio César e Melo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -97,16 +97,12 @@
         if (!el.data("crossview-knockout.rendering")) {
             var val = el.val();
             
-            if (!val) {
-                return;
-            }
-            
             el.empty().data("crossview-knockout.rendering", true);
 
             setTimeout(function() {
                 el.removeData("crossview-knockout.rendering");
                 
-                if (el.is("select")) {
+                if (val && el.is("select")) {
                     /* If this is a select and is being rendered,
                      * its value option may not exist before rendering.
                      * If so, let's reset the value after rendering.
