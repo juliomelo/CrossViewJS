@@ -8,7 +8,7 @@
  * 
  * The MIT License (MIT)
  * 
- * Copyright (c) 2011 Júlio César e Melo
+ * Copyright (c) 2011 JÃºlio CÃ©sar e Melo
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -128,7 +128,7 @@
         while (instance && !instance[command]) {
             instance = instance.getAncestorViewModel(lastElement);
 
-            if (instance.container) {
+            if (instance && instance.container) {
                 lastElement = instance.container;
             }
         }
