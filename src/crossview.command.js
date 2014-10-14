@@ -96,10 +96,7 @@
         var el = $(this);
         var command = el.attr(CrossViewJS.options.attributes.command);
 
-        var newArgs = [el, command];
-
-        for (var i = 0; i < arguments.length; i++)
-            newArgs.push(arguments[i]);
+        var newArgs = [el, command, arguments];
 
         return invokeCommand.apply(el, newArgs) !== false;
     }
