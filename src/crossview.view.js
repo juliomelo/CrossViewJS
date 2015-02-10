@@ -36,7 +36,7 @@
             css: {
                 view: {
                     fetching: "crossview-fetching",
-                    loadingViewModel: "crossview-loading",
+                    loadingViewModel: "crossview-loadingViewModel",
                     renderingView: "crossview-loading",
                     error: "crossview-error"
                 }
@@ -202,15 +202,15 @@
                     var content = null;
 
                     try {
-						var itemData = {parent: data, index: i, viewModel: viewModel};
-						
-						if (template) {
-							content = CrossViewJS.template.render(template, data[i] || {}, itemData);
-						} else if (compiledTemplate) {
-							content = CrossViewJS.template.renderCompiled(compiledTemplate, data[i] || {}, itemData);
-						} else {
-							throw "How should I render element without template?";
-						}
+                        var itemData = {parent: data, index: i, viewModel: viewModel};
+
+                        if (template) {
+                            content = CrossViewJS.template.render(template, data[i] || {}, itemData);
+                        } else if (compiledTemplate) {
+                            content = CrossViewJS.template.renderCompiled(compiledTemplate, data[i] || {}, itemData);
+                        } else {
+                            throw "How should I render element without template?";
+                        }
 						
                         content.appendTo(el);
 

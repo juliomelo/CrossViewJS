@@ -256,7 +256,7 @@
                 
                 if (renderContext.form.attr(CrossViewJS.options.attributes.form.replaceUrl) == "true") {
                     if (renderContext.form.attr("method").toUpperCase() != "GET") {
-                        CrossVIewJS.notifyError(renderContext.form, "Cannot replace URL for other method than GET.");
+                        CrossViewJS.notifyError(renderContext.form, "Cannot replace URL for other method than GET.");
                         return;
                     }
                     

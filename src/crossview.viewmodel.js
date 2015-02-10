@@ -214,7 +214,7 @@
             el.trigger("crossview-binded", [el, instance]);
 
             if (el.attr(CrossViewJS.options.attributes.view.binding)) {
-                el.crossview("render");
+                el.removeClass(CrossViewJS.options.css.view.loadingViewModel).crossview("render");
             } else {
                 // Since we have already instantiated the view-model, try to render its view.
                 var views = el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.withoutViewModel + "=true]):not([" + CrossViewJS.options.attributes.view.lastRendering + "])");
