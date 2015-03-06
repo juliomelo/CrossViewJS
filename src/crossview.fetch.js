@@ -7,7 +7,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2011 Júlio César e Melo
+ * Copyright (c) 2011 JÃºlio CÃ©sar e Melo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -118,7 +118,7 @@
                             options.data = null;
                         }
                         
-                        return "http://query.yahooapis.com/v1/public/yql?format=json&q=select%20*%20from%20xml%20where%20url%3D%22" +
+                        return location.protocol + "//query.yahooapis.com/v1/public/yql?format=json&q=select%20*%20from%20xml%20where%20url%3D%22" +
                             encodeURIComponent(url) + "%22";
                     }
                 },
@@ -150,7 +150,7 @@
                             options.data = null;
                         }
                         
-                        return "http://query.yahooapis.com/v1/public/yql?format=json&q=select%20*%20from%20json%20where%20url%3D%22" +
+                        return location.protocol + "//query.yahooapis.com/v1/public/yql?format=json&q=select%20*%20from%20json%20where%20url%3D%22" +
                             encodeURIComponent(url) + "%22";
                     }
                 },
@@ -187,7 +187,7 @@
                         if (!xpath)
                             throw CrossViewJS.options.attributes.fetch.xpath + " attribute is mandatory for yql-html mode.";
                         
-                        return "http://query.yahooapis.com/v1/public/yql?format=json&q=select%20*%20from%20html%20where%20url%3D%22" +
+                        return location.protocol + "//query.yahooapis.com/v1/public/yql?format=json&q=select%20*%20from%20html%20where%20url%3D%22" +
                             encodeURIComponent(url) + "%22%20and%20xpath=%22" + encodeURIComponent(xpath) + "%22";
                     }
                 }
