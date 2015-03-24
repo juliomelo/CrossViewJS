@@ -7,7 +7,7 @@
  *
  * The MIT License (MIT)
  *
- * Copyright (c) 2011 Júlio César e Melo
+ * Copyright (c) 2011 JÃºlio CÃ©sar e Melo
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -427,10 +427,19 @@
                     CrossViewJS.options.resources.viewModel[name] = null;
                     CrossViewJS.console.error("Error loading javascript for View-Model \"" + name + "\" from " + viewModelURL + ": " + e + ".");
                 }).complete(function () {
-                    that.find("." + CrossViewJS.options.css.view.loadingViewModel).each(function () {
-                        if (!shouldHaveViewModel($(this)))
-                            $(this).removeClass(CrossViewJS.options.css.view.loadingViewModel);
-                    });
+                    var viewModel = getViewModel(that);
+                    
+                    if (viewModel && (viewModel.singleton || viewModel.flyweight)) {
+                        $("[" + CrossViewJS.options.attributes.viewModel.bindId + "=" + viewModel.instanceId + "] ." + CrossViewJS.options.css.view.loadingViewModel).each(function () {
+                            if (!shouldHaveViewModel($(this)))
+                                $(this).removeClass(CrossViewJS.options.css.view.loadingViewModel);
+                        });
+                    } else {
+                        that.find("." + CrossViewJS.options.css.view.loadingViewModel).each(function () {
+                            if (!shouldHaveViewModel($(this)))
+                                $(this).removeClass(CrossViewJS.options.css.view.loadingViewModel);
+                        });
+                    }
                 });
             } else if (CrossViewJS.loadingMapping === 0) {
                 var htmlClass = CrossViewJS.traverseJSON(window, name);
