@@ -192,7 +192,7 @@
 
                 viewModel.instances[instanceId] = instance;
 
-                if (viewModelData && (viewModelData.singleton || viewModelData.flyweight)) {
+                if (viewModelData && (instance.singleton || instance.flyweight)) {
                     viewModelData.singletonInstance = instance;
                     instance.container = null;
                 }
