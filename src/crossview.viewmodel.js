@@ -384,7 +384,7 @@
                 CrossViewJS.console.log("Binding View-Model \"" + name + "\" to " + $(this).attr("id"));
                 setViewModel($(this), name);
             } else if (CrossViewJS.options.resources.viewModel[name]) {
-                $(this).find("[" + CrossViewJS.options.attributes.view.binding + "]").addClass(CrossViewJS.options.css.view.loadingViewModel);
+                $(this).find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.withoutViewModel + "='true'])").addClass(CrossViewJS.options.css.view.loadingViewModel);
 
                 var that = $(this);
 
