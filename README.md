@@ -1,6 +1,9 @@
 CrossViewJS
 ===========
 
+**This library is deprecated and will not be mantained.**
+
+
 Building
 ---------
 
