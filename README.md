@@ -28,7 +28,7 @@ To install dependencies, do:
 API Documentation
 -----------------
 
-There is still no API documentation. Any help is appreaciated.
+There is no API documentation. **This project is deprecated!**
 
 License
 -------
