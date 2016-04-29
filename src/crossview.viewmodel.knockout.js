@@ -93,35 +93,42 @@
     
     function postponedRendering(element) {
         var el = $(element);
+        var val = el.val();
         
-        if (!el.data("crossview-knockout.rendering")) {
-            var val = el.val();
+        if (val && !el.data("crossview-knockout.rendering")) {
             
             el.empty().data("crossview-knockout.rendering", true);
 
             setTimeout(function() {
+                /* If this is a select and is being rendered,
+                 * its value option may not exist before rendering.
+                 * If so, let's reset the value after rendering.
+                 */
+                function setValue() {
+                    if (el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").length === 0
+                        && el.find("[" + CrossViewJS.options.attributes.view.innerTemplate + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").length === 0) {
+                        if (el.val() !== val) {
+                            el.val(val).change();
+                        }
+                    } else {
+                        el.one("crossview-rendered", setValue);
+                    }
+                }
+
                 el.removeData("crossview-knockout.rendering");
                 
+                if (el.attr(CrossViewJS.options.attributes.view.lastRendering)) {
+                    setValue();
+                    return;
+                }
+                
                 if (val && el.is("select")) {
-                    /* If this is a select and is being rendered,
-                     * its value option may not exist before rendering.
-                     * If so, let's reset the value after rendering.
-                     */
-                    function setValue() {
-                        if (el.find("[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").length === 0
-                            && el.find("[" + CrossViewJS.options.attributes.view.innerTemplate + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])").length === 0) {
-                            if (el.val() !== val) {
-                                el.val(val).change();
-                            }
-                        } else {
-                            el.one("crossview-rendered", setValue);
-                        }
-                    }
-                     
                     el.one("crossview-rendered", setValue);
                 }
                 
-                el.crossview("render");
+                if (!el.hasClass(CrossViewJS.options.css.view.fetching)) {
+                    el.crossview("render");
+                }
             }, 1);
         }
     }
