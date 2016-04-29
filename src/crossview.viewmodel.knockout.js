@@ -40,11 +40,11 @@
             
             try {
                 if ($(element).is("select[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])")) {
-                    postponedRendering($(element));
+                    postponedRendering($(element), true);
                 }
                 
                 $("select[" + CrossViewJS.options.attributes.view.binding + "]:not([" + CrossViewJS.options.attributes.view.lastRendering + "])", element).each(function() {
-                    postponedRendering($(this));
+                    postponedRendering($(this), true);
                 });
                 
                 try {
@@ -91,11 +91,11 @@
         }
     };
     
-    function postponedRendering(element) {
+    function postponedRendering(element, keepIfRendered) {
         var el = $(element);
         var val = el.val();
         
-        if (val && !el.data("crossview-knockout.rendering")) {
+        if ((val || !keepIfRendered) && !el.data("crossview-knockout.rendering")) {
             
             el.empty().data("crossview-knockout.rendering", true);
 
@@ -117,7 +117,7 @@
 
                 el.removeData("crossview-knockout.rendering");
                 
-                if (el.attr(CrossViewJS.options.attributes.view.lastRendering)) {
+                if (keepIfRendered && el.attr(CrossViewJS.options.attributes.view.lastRendering)) {
                     setValue();
                     return;
                 }
